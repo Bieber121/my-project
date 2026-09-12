@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0b1020" />
+<title>佐谕人生系统 v2.4</title>
+<style>
+:root{
+  --bg:#090d18; --bg2:#10182b; --panel:rgba(19,27,45,.78); --panel-2:rgba(13,20,35,.88);
+  --line:rgba(255,255,255,.09); --text:#eef4ff; --muted:#9ba9c7; --blue:#6ea8ff;
+  --cyan:#78e5ff; --violet:#bb8cff; --green:#63e09a; --gold:#f8c968; --red:#ff7d86;
+  --shadow:0 24px 80px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Segoe UI",sans-serif;
+  background:
+    radial-gradient(900px 450px at 12% -5%, rgba(110,168,255,.20), transparent 60%),
+    radial-gradient(700px 360px at 92% 0%, rgba(187,140,255,.18), transparent 55%),
+    linear-gradient(180deg,#0a1020 0%, #0a0f18 50%, #090d18 100%);
+  min-height:100vh;
+}
+main{max-width:780px;margin:0 auto;padding:calc(18px + env(safe-area-inset-top)) 16px calc(106px + env(safe-area-inset-bottom))}
+h1,h2,h3,p{margin:0}
+section{margin-top:18px}
+.card,.task,.record,.shop-item,.mini-card,.modal-box{
+  background:var(--panel); backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px);
+  border:1px solid var(--line); box-shadow:var(--shadow)
+}
+.hero{
+  border-radius:28px;padding:18px;
+  background:linear-gradient(135deg, rgba(110,168,255,.16), rgba(187,140,255,.12)), rgba(19,27,45,.78);
+  border:1px solid rgba(255,255,255,.12); box-shadow:var(--shadow)
+}
+.hero-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.userbox{display:flex;gap:14px;align-items:center}
+.avatar{
+  width:56px;height:56px;border-radius:18px;display:grid;place-items:center;font-weight:800;font-size:22px;
+  background:linear-gradient(135deg,#6ea8ff,#bb8cff); box-shadow:0 10px 28px rgba(110,168,255,.25)
+}
+.badge{padding:8px 12px;border-radius:999px;font-size:12px;font-weight:700;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1)}
+.sub{color:var(--muted);font-size:13px;margin-top:4px}
+.hero-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:12px;margin-top:16px}
+.level-card,.quote-card{border-radius:24px;padding:16px;background:var(--panel-2);border:1px solid var(--line)}
+.level-top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.lv-big{font-size:40px;font-weight:900;line-height:1}
+.meta{color:var(--muted);font-size:12px}
+.bar-bg{height:10px;border-radius:999px;overflow:hidden;margin-top:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
+.bar{height:100%;width:0%;background:linear-gradient(90deg,var(--blue),var(--cyan),var(--violet));border-radius:999px}
+.quick-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+.mini-card{border-radius:18px;padding:14px}
+.mini-card span{display:block;color:var(--muted);font-size:12px}
+.mini-card b{display:block;margin-top:4px;font-size:22px}
+.section-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.section-title h2{font-size:19px}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap}
+button{
+  appearance:none;border:none;outline:none;cursor:pointer;border-radius:14px;padding:11px 14px;font-weight:750;font-size:14px;
+  color:#fff;background:#1c2740;border:1px solid rgba(255,255,255,.10)
+}
+button:active{transform:scale(.985)}
+button.primary{background:linear-gradient(135deg,#2d74ff,#6d7cff)}
+button.good{background:linear-gradient(135deg,#188a56,#20ad69)}
+button.soft{background:rgba(255,255,255,.05)}
+button.danger{background:linear-gradient(135deg,#8c2431,#ba3548)}
+button.gold{background:linear-gradient(135deg,#b68212,#d8a63b)}
+.tabs{display:flex;gap:8px;overflow:auto;padding-bottom:4px;margin-bottom:10px}
+.tabs button{white-space:nowrap;background:rgba(255,255,255,.04)}
+.tabs button.active{background:linear-gradient(135deg,rgba(110,168,255,.35),rgba(187,140,255,.28));border-color:rgba(255,255,255,.16)}
+.attrs{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.attr{border-radius:20px;padding:14px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow)}
+.attr-top{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.attr-top span{color:var(--muted);font-size:12px}
+.attr-top b{font-size:20px}
+.attr-bar{height:8px;border-radius:999px;overflow:hidden;margin-top:10px;background:rgba(255,255,255,.07)}
+.attr-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--cyan));border-radius:999px}
+
+.final-wrap{
+  position:relative;overflow:hidden;border-radius:26px;padding:1px;
+  background:linear-gradient(135deg,#ffe09a,#ff9b62,#d94a4a,#7f2438);
+  box-shadow:0 28px 90px rgba(145,38,55,.28)
+}
+.final-inner{
+  position:relative;border-radius:25px;padding:18px;
+  background:
+    radial-gradient(520px 200px at 96% 0%, rgba(248,201,104,.14), transparent 60%),
+    linear-gradient(145deg,rgba(43,17,23,.98),rgba(18,14,24,.99));
+  border:1px solid rgba(255,255,255,.05)
+}
+.final-label{
+  display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border-radius:999px;
+  background:linear-gradient(135deg,#7d1f31,#bb373e);
+  color:#ffe8b0;border:1px solid rgba(248,201,104,.35);
+  font-size:12px;font-weight:900;letter-spacing:.12em
+}
+.final-title{
+  margin-top:12px;font-size:28px;font-weight:950;letter-spacing:-.03em;
+  background:linear-gradient(90deg,#fff5d2,#ffd276,#ff9167);
+  -webkit-background-clip:text;background-clip:text;color:transparent
+}
+.final-desc{margin-top:8px;color:#d8c9c9;font-size:13px;line-height:1.75}
+.final-conditions{
+  margin-top:14px;padding:12px 13px;border-radius:16px;
+  background:rgba(0,0,0,.21);border:1px solid rgba(255,255,255,.06);
+  color:#cabdbc;font-size:12px;line-height:1.65
+}
+.final-conditions b{color:#ffe7ac}
+.final-reward{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px}
+.final-reward div{
+  padding:11px 12px;border-radius:14px;background:rgba(255,255,255,.045);
+  border:1px solid rgba(248,201,104,.11)
+}
+.final-reward span{display:block;color:#a99490;font-size:11px}
+.final-reward b{display:block;margin-top:3px;color:#ffe7ac;font-size:14px}
+.final-done-note{
+  margin-top:13px;padding:12px 13px;border-radius:15px;
+  color:#bff4d3;background:rgba(34,130,82,.14);border:1px solid rgba(99,224,154,.22)
+}
+
+.task{border-radius:22px;padding:14px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start}
+.rank-badge{
+  min-width:48px;height:48px;border-radius:16px;display:grid;place-items:center;font-weight:900;font-size:15px;
+  border:1px solid rgba(255,255,255,.12)
+}
+.rank-E{background:linear-gradient(135deg,#526784,#334258)}
+.rank-D{background:linear-gradient(135deg,#3b84ff,#2257b9)}
+.rank-C{background:linear-gradient(135deg,#22b0ff,#0b6f9a)}
+.rank-B{background:linear-gradient(135deg,#2dbd7d,#197b51)}
+.rank-A{background:linear-gradient(135deg,#efb94f,#b57918)}
+.rank-S{background:linear-gradient(135deg,#ff8b5e,#ca4a22)}
+.rank-SS{background:linear-gradient(135deg,#c47dff,#7f47ff)}
+.rank-SSS{background:linear-gradient(135deg,#ff5e9e,#a228ff)}
+.task-main{flex:1}
+.task-title{font-size:16px;font-weight:800}
+.task-desc{font-size:12px;color:var(--muted);line-height:1.6;margin-top:4px}
+.task-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.inline-kpis{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.inline-kpis span{font-size:12px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)}
+.empty{border-radius:20px;padding:16px;text-align:center;color:var(--muted);background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.12)}
+.record{border-radius:20px;padding:15px;margin-bottom:10px;border-left:4px solid var(--green)}
+.record b{display:block;margin-bottom:5px}
+.shop-grid{display:grid;grid-template-columns:1fr;gap:10px}
+.shop-item{border-radius:20px;padding:14px;display:flex;justify-content:space-between;gap:12px;align-items:center}
+.shop-item p{color:var(--muted);font-size:12px;margin-top:4px}
+.panel-note{color:var(--muted);font-size:12px;line-height:1.6;margin-bottom:12px}
+.footer-nav{
+  position:fixed;left:0;right:0;bottom:0;z-index:60;
+  padding:10px 14px calc(12px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg, rgba(9,13,24,0) 0%, rgba(9,13,24,.9) 24%, rgba(9,13,24,.96) 100%);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)
+}
+.footer-inner{
+  max-width:780px;margin:0 auto;padding:8px;background:rgba(17,24,40,.9);
+  border:1px solid rgba(255,255,255,.1);border-radius:22px;display:grid;grid-template-columns:repeat(5,1fr);gap:8px;box-shadow:var(--shadow)
+}
+.nav-btn{text-align:center;font-size:11px;padding:9px 6px;border-radius:16px;background:transparent;border:1px solid transparent;color:#d6e4ff}
+.nav-btn b{display:block;font-size:18px;margin-bottom:4px}
+.nav-btn.active{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.08)}
+.modal{display:none;position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.72);padding:20px}
+.modal-box{max-width:560px;margin:6vh auto 0;border-radius:24px;padding:18px}
+.modal-box h3{margin-bottom:12px}
+input,select,textarea{
+  width:100%;margin-top:8px;border-radius:14px;padding:13px 14px;color:#fff;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);font:inherit
+}
+textarea{min-height:92px;resize:vertical}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.toast{
+  display:none;position:fixed;left:50%;bottom:102px;transform:translateX(-50%);z-index:100;
+  background:#101828;border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:10px 14px;box-shadow:var(--shadow);font-size:13px
+}
+hr.sep{border:none;height:1px;background:rgba(255,255,255,.08);margin:14px 0}
+@media (max-width:620px){.hero-grid{grid-template-columns:1fr}.quick-stats{grid-template-columns:repeat(2,1fr)}}
+@media (min-width:700px){.attrs{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<main>
+  <section class="hero" id="home">
+    <div class="hero-top">
+      <div class="userbox">
+        <div class="avatar">沈</div>
+        <div>
+          <h1>佐谕人生系统</h1>
+          <div class="sub" id="todayText">重建系统 · 真实战绩已计入</div>
+        </div>
+      </div>
+      <div class="badge" id="titleBadge">新手旅人</div>
+    </div>
+
+    <div class="hero-grid">
+      <div class="level-card">
+        <div class="level-top">
+          <div>
+            <div class="meta">当前等级</div>
+            <div class="lv-big" id="levelText">Lv.1</div>
+          </div>
+          <div style="text-align:right">
+            <div class="meta">段位评级</div>
+            <div style="font-size:22px;font-weight:900" id="tierText">E</div>
+          </div>
+        </div>
+        <div class="bar-bg"><div class="bar" id="expBar"></div></div>
+        <div class="meta" style="margin-top:8px;display:flex;justify-content:space-between;gap:12px">
+          <span id="expLabel">0 / 120 EXP</span>
+          <span id="nextLabel">下一等级：Lv.2</span>
+        </div>
+
+        <div class="quick-stats">
+          <div class="mini-card"><span>金币</span><b id="coinText">0</b></div>
+          <div class="mini-card"><span>完成任务</span><b id="doneText">0</b></div>
+          <div class="mini-card"><span>已解锁称号</span><b id="titleCountText">1</b></div>
+          <div class="mini-card"><span>已解锁地区</span><b id="regionCountText">0</b></div>
+        </div>
+      </div>
+
+      <div class="quote-card">
+        <div class="meta">系统提示</div>
+        <h3 style="font-size:18px;line-height:1.4;margin-top:6px">这次重新做系统，但真实战绩不会清零。</h3>
+        <p class="sub" style="line-height:1.7;margin-top:10px">
+          普通任务仍按 E～SSS 评级；「逃离中国」已独立设为 FINAL 人生最终主线，不参与普通难度体系。日常任务继续使用任务码导入，不需要再更新 GitHub。
+        </p>
+        <hr class="sep" />
+        <div class="btn-row">
+          <button class="primary" onclick="openTaskModal()">＋ 创建任务</button>
+          <button class="soft" onclick="scrollToSection('recordsSection')">查看战绩</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="attrsSection">
+    <div class="section-title"><h2>属性面板</h2><div class="meta">越做越强</div></div>
+    <div class="attrs" id="attrGrid"></div>
+  </section>
+
+  <section id="tasksSection">
+    <div class="section-title">
+      <h2>任务大厅</h2>
+      <div class="btn-row">
+        <button class="soft" onclick="openImportModal()">导入任务码</button>
+        <button class="soft" onclick="openTaskModal()">自定义任务</button>
+      </div>
+    </div>
+    <div class="tabs" id="rankTabs"></div>
+    <div id="taskList"></div>
+  </section>
+
+  <section id="finalSection">
+    <div class="section-title">
+      <h2>最终主线</h2>
+      <div class="meta">超越 E～SSS</div>
+    </div>
+    <div id="finalTaskBox"></div>
+  </section>
+
+  <section id="recordsSection">
+    <div class="section-title"><h2>历史战绩</h2><div class="meta">真实完成，真实记录</div></div>
+    <div id="recordList"></div>
+  </section>
+
+  <section id="shopSection">
+    <div class="section-title"><h2>奖励商店</h2><div class="meta">金币换现实奖励</div></div>
+    <div class="shop-grid" id="shopGrid"></div>
+  </section>
+
+  <section id="dataSection">
+    <div class="section-title"><h2>系统数据</h2><div class="meta">本地保存</div></div>
+    <div class="card" style="border-radius:22px;padding:16px">
+      <div class="panel-note">
+        数据默认保存在当前浏览器本地。换手机、清理网站数据前，记得先导出存档。上传新版本网页后，存档通常仍然保留；但保险起见，更新前还是建议先导出。
+      </div>
+      <div class="btn-row">
+        <button onclick="exportSave()">导出存档</button>
+        <button onclick="document.getElementById('importFile').click()">导入存档</button>
+        <button class="danger" onclick="resetAll()">重置系统</button>
+        <input id="importFile" type="file" accept=".json" style="display:none" onchange="importSave(event)">
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="footer-nav">
+  <div class="footer-inner">
+    <button class="nav-btn active" onclick="scrollToSection('home')"><b>⌂</b>主页</button>
+    <button class="nav-btn" onclick="scrollToSection('attrsSection')"><b>◈</b>属性</button>
+    <button class="nav-btn" onclick="scrollToSection('tasksSection')"><b>✓</b>任务</button>
+    <button class="nav-btn" onclick="scrollToSection('recordsSection')"><b>★</b>战绩</button>
+    <button class="nav-btn" onclick="scrollToSection('shopSection')"><b>¤</b>商店</button>
+  </div>
+</div>
+
+<div class="modal" id="taskModal">
+  <div class="modal-box">
+    <h3>创建自定义任务</h3>
+    <input id="taskName" placeholder="任务名称，例如：下班去一个没去过的地方" />
+    <div class="grid-2">
+      <select id="taskRank"><option>E</option><option>D</option><option>C</option><option>B</option><option>A</option><option>S</option><option>SS</option><option>SSS</option></select>
+      <input id="taskExp" type="number" min="1" value="120" placeholder="EXP" />
+    </div>
+    <div class="grid-2">
+      <input id="taskCoins" type="number" min="0" value="60" placeholder="金币" />
+      <select id="taskAttr"><option value="体能">体能</option><option value="耐力">耐力</option><option value="英语">英语</option><option value="日语">日语</option><option value="独立行动力">独立行动力</option><option value="社交">社交</option><option value="财务">财务</option><option value="探索">探索</option></select>
+    </div>
+    <div class="grid-2">
+      <input id="taskGain" type="number" min="1" value="1" placeholder="属性增加" />
+      <input id="taskTitleReward" placeholder="解锁称号（可选）" />
+    </div>
+    <textarea id="taskDesc" placeholder="任务描述 / 限制 / 备注（可选）"></textarea>
+    <div class="btn-row" style="margin-top:12px">
+      <button class="primary" onclick="createTask()">创建任务</button>
+      <button class="soft" onclick="closeTaskModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal" id="importTaskModal">
+  <div class="modal-box">
+    <h3>导入任务码</h3>
+    <div class="panel-note">
+      粘贴我发给你的任务码即可。任务码以 <b>ZYQ1:</b> 开头；也兼容直接粘贴任务 JSON。
+    </div>
+    <textarea id="taskCodeInput" placeholder="例如：ZYQ1:eyJ2IjoxLCJ0aXRsZSI6Li4ufQ"></textarea>
+    <div class="btn-row" style="margin-top:12px">
+      <button class="primary" onclick="importTaskCode()">导入任务</button>
+      <button class="soft" onclick="closeImportModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const RANKS=["E","D","C","B","A","S","SS","SSS"];
+const RANK_THRESHOLDS={E:0,D:300,C:900,B:2200,A:5000,S:9000,SS:15000,SSS:25000};
+const BASE_TASKS=[
+  {id:"e1",rank:"E",title:"跑步机 20 分钟",exp:80,coins:30,attr:"耐力",gain:1,desc:"完成即可，不要求速度。"},
+  {id:"e2",rank:"E",title:"背 15 个英语单词",exp:60,coins:25,attr:"英语",gain:1,desc:"哪怕只花 10 分钟，也算推进。"},
+  {id:"d1",rank:"D",title:"独自探索一个没去过的城区",exp:180,coins:90,attr:"探索",gain:1,desc:"完成路线并拍一张照片。"},
+  {id:"d2",rank:"D",title:"做一次 30 分钟耐力训练",exp:160,coins:80,attr:"体能",gain:1,desc:"跑步机 / 椭圆机 / 单车都可以。"},
+  {id:"c1",rank:"C",title:"下班后跨城住一晚",exp:360,coins:160,attr:"独立行动力",gain:2,desc:"尽量不消耗年假。"},
+  {id:"b1",rank:"B",title:"参加一次正式大众比赛",exp:780,coins:320,attr:"体能",gain:2,desc:"目标不是成绩，而是真正完赛。"},
+  {id:"s1",rank:"S",title:"取得海外合法工作机会",exp:3200,coins:1500,attr:"独立行动力",gain:4,desc:"以真实 offer / COE / 工签推进为准。"},
+  {id:"ss1",rank:"SS",title:"完成跨国迁移并稳定生活 90 天",exp:6500,coins:2600,attr:"独立行动力",gain:5,desc:"建立稳定住所、收入和日常系统。"},
+  {id:"sss1",rank:"SSS",title:"实现高自由度跨国生活",exp:12000,coins:5200,attr:"探索",gain:6,desc:"达到你自己认可的自由标准。"}
+];
+const DEFAULT_STATE={
+  exp:0,
+  coins:0,
+  titles:["新手旅人"],
+  currentTitle:"新手旅人",
+  regions:[],
+  chapters:["现实世界篇"],
+  tasks:BASE_TASKS,
+  selectedRank:"E",
+  attrs:{
+    "体能":10,"耐力":10,"英语":5,"日语":1,
+    "独立行动力":12,"社交":6,"财务":5,"探索":8
+  },
+  completed:[],
+  finalTask:{
+    id:"final_escape_cn",
+    title:"逃离中国",
+    completed:false,
+    exp:20000,
+    coins:10000,
+    attr:"独立行动力",
+    gain:10,
+    titleReward:"自由迁徙者",
+    chapterReward:"海外生活篇",
+    desc:"通过合法、可持续的方式完成跨国迁移，并在海外建立稳定生活。短期旅游、临时访学或临时停留不计入完成。",
+    conditions:[
+      "取得可持续的合法居留 / 工作身份",
+      "完成实际跨国迁移",
+      "在海外连续稳定生活至少 90 天",
+      "拥有稳定收入与稳定住所",
+      "建立至少 3 个月生活费的应急储备"
+    ]
+  },
+  shop:[
+    {name:"无糖可乐",cost:280,note:"小奖励，低成本快乐。"},
+    {name:"吃一顿想吃的",cost:1000,note:"奖励自己，但别暴食。"},
+    {name:"买一个小东西",cost:3000,note:"耳机配件、游戏皮肤、日用品都行。"},
+    {name:"周边城市旅行",cost:8000,note:"一次真正的现实支线。"},
+    {name:"海外支线基金",cost:20000,note:"为更大的任务攒资源。"}
+  ]
+};
+let state=loadState();
+state=migrateState(state);
+localStorage.setItem("zuoyuLifeV2",JSON.stringify(state));
+
+function deepClone(obj){return JSON.parse(JSON.stringify(obj))}
+function loadState(){
+  try{
+    const saved=localStorage.getItem("zuoyuLifeV2");
+    if(saved)return JSON.parse(saved)
+  }catch(e){}
+  return deepClone(DEFAULT_STATE)
+}
+
+function migrateState(s){
+  s.migrations=s.migrations||{};
+  if(!s.migrations.japanExpedition202608){
+    s.exp=(Number(s.exp)||0)+1600;
+    s.coins=(Number(s.coins)||0)+700;
+
+    s.titles=Array.isArray(s.titles)?s.titles:[];
+    if(!s.titles.includes("新手旅人")) s.titles.unshift("新手旅人");
+    if(!s.titles.includes("独行者Ⅰ")) s.titles.push("独行者Ⅰ");
+    s.currentTitle="独行者Ⅰ";
+
+    s.regions=Array.isArray(s.regions)?s.regions:[];
+    if(!s.regions.includes("日本")) s.regions.push("日本");
+
+    s.attrs=s.attrs||{};
+    s.attrs["独立行动力"]=(Number(s.attrs["独立行动力"])||0)+2;
+    s.attrs["陌生环境适应力"]=(Number(s.attrs["陌生环境适应力"])||0)+2;
+    s.attrs["旅行规划能力"]=(Number(s.attrs["旅行规划能力"])||0)+2;
+    s.attrs["现实胆量"]=(Number(s.attrs["现实胆量"])||0)+2;
+    s.attrs["人生故事"]=(Number(s.attrs["人生故事"])||0)+3;
+
+    s.completed=Array.isArray(s.completed)?s.completed:[];
+    const hasJapan=s.completed.some(x=>x && x.title==="七日海外独立远征（日本）");
+    if(!hasJapan){
+      s.completed.push({
+        title:"七日海外独立远征（日本）",
+        rank:"A",
+        date:"2026-08",
+        rewards:"+1600 EXP · +700 金币 · 海外独立行动力 +2 · 陌生环境适应力 +2 · 旅行规划能力 +2 · 现实胆量 +2 · 人生故事 +3 · 解锁区域「日本」 · 解锁称号「独行者Ⅰ」"
+      });
+    }
+
+    // Remove the generic overseas expedition task if an older save still contains it,
+    // to prevent claiming the same real-world achievement twice.
+    if(Array.isArray(s.tasks)){
+      s.tasks=s.tasks.filter(t=>!(t && (t.id==="a1" || t.title==="独自完成一次海外远征")));
+    }else{
+      s.tasks=deepClone(BASE_TASKS);
+    }
+
+    s.migrations.japanExpedition202608=true;
+  }
+  if(!Array.isArray(s.chapters)) s.chapters=["现实世界篇"];
+
+  // v2.4: add the one-and-only FINAL main quest to existing saves.
+  if(!s.finalTask){
+    s.finalTask=deepClone(DEFAULT_STATE.finalTask);
+  }else{
+    const df=DEFAULT_STATE.finalTask;
+    s.finalTask={...df,...s.finalTask};
+    if(!Array.isArray(s.finalTask.conditions)) s.finalTask.conditions=[...df.conditions];
+  }
+
+  return s;
+}
+
+function saveState(){localStorage.setItem("zuoyuLifeV2",JSON.stringify(state));render()}
+function toast(msg){const el=document.getElementById("toast");el.textContent=msg;el.style.display="block";clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.style.display="none",1700)}
+function expNeededForLevel(level){if(level<=1)return 0;let total=0;for(let lv=1;lv<level;lv++){total+=80+(lv-1)*40}return total}
+function getLevelFromExp(exp){let level=1;while(exp>=expNeededForLevel(level+1)&&level<999){level++}return level}
+function getExpProgress(exp){const level=getLevelFromExp(exp);const currentBase=expNeededForLevel(level);const nextBase=expNeededForLevel(level+1);return{level,currentBase,nextBase,inLevel:exp-currentBase,needed:nextBase-currentBase,ratio:level>=999?1:((exp-currentBase)/(nextBase-currentBase))}}
+function getTier(exp){let tier="E";for(const r of RANKS){if(exp>=RANK_THRESHOLDS[r])tier=r}return tier}
+function todayString(){const d=new Date();return d.getFullYear()+" / "+String(d.getMonth()+1).padStart(2,"0")+" / "+String(d.getDate()).padStart(2,"0")}
+function escapeHtml(text){return String(text).replace(/[&<>"']/g,function(m){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]})}
+
+function renderHeader(){
+  const prog=getExpProgress(state.exp);
+  document.getElementById("todayText").textContent=todayString()+" · 真实战绩已计入";
+  document.getElementById("titleBadge").textContent=state.currentTitle||"新手旅人";
+  document.getElementById("levelText").textContent="Lv."+prog.level;
+  document.getElementById("tierText").textContent=getTier(state.exp);
+  document.getElementById("expLabel").textContent=prog.inLevel+" / "+prog.needed+" EXP";
+  document.getElementById("nextLabel").textContent="下一等级：Lv."+(prog.level+1);
+  document.getElementById("expBar").style.width=Math.max(0,Math.min(100,prog.ratio*100))+"%";
+  document.getElementById("coinText").textContent=state.coins;
+  document.getElementById("doneText").textContent=state.completed.length;
+  document.getElementById("titleCountText").textContent=state.titles.length;
+  document.getElementById("regionCountText").textContent=state.regions.length;
+}
+function renderAttrs(){
+  const grid=document.getElementById("attrGrid");
+  const maxv=Math.max(...Object.values(state.attrs),20);
+  grid.innerHTML=Object.entries(state.attrs).map(([name,value])=>`
+    <div class="attr">
+      <div class="attr-top"><span>${name}</span><b>${value}</b></div>
+      <div class="attr-bar"><i style="width:${Math.min(100,value/maxv*100)}%"></i></div>
+    </div>
+  `).join("");
+}
+function rankClass(rank){return "rank-"+rank}
+function renderTasks(){
+  const tabs=document.getElementById("rankTabs");
+  tabs.innerHTML=RANKS.map(rank=>`<button class="${state.selectedRank===rank?'active':''}" onclick="selectRank('${rank}')">${rank}</button>`).join("");
+  const list=document.getElementById("taskList");
+  const tasks=state.tasks.filter(t=>t.rank===state.selectedRank);
+  if(!tasks.length){list.innerHTML=`<div class="empty">这个等级暂时没有任务。</div>`;return}
+  list.innerHTML=tasks.map(t=>`
+    <div class="task">
+      <div class="rank-badge ${rankClass(t.rank)}">${t.rank}</div>
+      <div class="task-main">
+        <div class="task-title">${escapeHtml(t.title)}</div>
+        <div class="task-desc">${escapeHtml(t.desc||"")}</div>
+        <div class="inline-kpis">
+          <span>+${t.exp} EXP</span><span>+${t.coins} 金币</span><span>${t.attr} +${t.gain||1}</span>
+          ${t.titleReward?`<span>称号：${escapeHtml(t.titleReward)}</span>`:""}
+        </div>
+        <div class="task-actions">
+          <button class="good" onclick="completeTask('${t.id}')">完成任务</button>
+          <button class="soft" onclick="copyTaskCode('${t.id}')">复制任务码</button>
+          ${t.custom?`<button class="danger" onclick="deleteTask('${t.id}')">删除</button>`:""}
+        </div>
+      </div>
+    </div>
+  `).join("");
+}
+function renderRecords(){
+  const box=document.getElementById("recordList");
+  if(!state.completed.length){box.innerHTML=`<div class="empty">还没有战绩记录。完成第一个任务后，这里会自动留下痕迹。</div>`;return}
+  box.innerHTML=[...state.completed].reverse().map(r=>`
+    <div class="record">
+      <b>${r.rank==="FINAL" ? "FINAL" : r.rank+"级"} · ${escapeHtml(r.title)}</b>
+      <div class="meta">${escapeHtml(r.date||"")}</div>
+      <div class="task-desc" style="margin-top:6px">${escapeHtml(r.rewards||"")}</div>
+    </div>
+  `).join("");
+}
+function renderShop(){
+  const box=document.getElementById("shopGrid");
+  box.innerHTML=state.shop.map((item,idx)=>`
+    <div class="shop-item">
+      <div><div style="font-weight:800">${escapeHtml(item.name)}</div><p>${escapeHtml(item.note||"")}<br>${item.cost} 金币</p></div>
+      <button class="gold" onclick="buyItem(${idx})">兑换</button>
+    </div>
+  `).join("");
+}
+function renderFinal(){
+  const box=document.getElementById("finalTaskBox");
+  if(!box) return;
+  const f=state.finalTask||DEFAULT_STATE.finalTask;
+  const conditions=(f.conditions||[]).map(x=>`<div style="margin-top:6px">✓ ${escapeHtml(x)}</div>`).join("");
+
+  box.innerHTML=`
+    <div class="final-wrap">
+      <div class="final-inner">
+        <div class="final-label">FINAL · 人生最终主线</div>
+        <div class="final-title">${escapeHtml(f.title)}</div>
+        <div class="final-desc">${escapeHtml(f.desc||"")}</div>
+
+        <div class="final-conditions">
+          <b>完成判定</b>
+          ${conditions}
+        </div>
+
+        <div class="final-reward">
+          <div><span>经验奖励</span><b>+${f.exp} EXP</b></div>
+          <div><span>金币奖励</span><b>+${f.coins}</b></div>
+          <div><span>属性奖励</span><b>${escapeHtml(f.attr)} +${f.gain}</b></div>
+          <div><span>终章称号</span><b>${escapeHtml(f.titleReward)}</b></div>
+          <div style="grid-column:1/-1"><span>新章节</span><b>${escapeHtml(f.chapterReward)}</b></div>
+        </div>
+
+        ${
+          f.completed
+          ? `<div class="final-done-note">✓ FINAL 已完成 · 已进入「${escapeHtml(f.chapterReward)}」</div>`
+          : `<div class="task-actions"><button class="gold" onclick="completeFinalTask()">完成最终主线</button></div>`
+        }
+      </div>
+    </div>
+  `;
+}
+
+function render(){renderHeader();renderAttrs();renderTasks();renderFinal();renderRecords();renderShop()}
+
+function selectRank(rank){state.selectedRank=rank;saveState()}
+function ensureTitle(title){if(!title)return;if(!state.titles.includes(title))state.titles.push(title);state.currentTitle=title}
+function completeTask(id){
+  const task=state.tasks.find(t=>t.id===id); if(!task)return;
+  state.exp += Number(task.exp)||0; state.coins += Number(task.coins)||0;
+  state.attrs[task.attr]=(state.attrs[task.attr]||0)+(Number(task.gain)||1);
+  if(task.titleReward){ensureTitle(task.titleReward)}
+  if(task.regionReward && !state.regions.includes(task.regionReward)){state.regions.push(task.regionReward)}
+  state.completed.push({
+    title:task.title, rank:task.rank, date:new Date().toLocaleDateString("zh-CN"),
+    rewards:`+${task.exp} EXP · +${task.coins} 金币 · ${task.attr} +${task.gain||1}${task.titleReward?" · 解锁称号「"+task.titleReward+"」":""}`
+  });
+  toast("任务完成："+task.title); saveState();
+}
+
+function completeFinalTask(){
+  const f=state.finalTask;
+  if(!f || f.completed) return;
+
+  const ok=confirm(
+    "确认完成 FINAL 最终主线「"+f.title+"」？\n\n"+
+    "只在全部现实条件都达成后结算。最终奖励不可重复领取。"
+  );
+  if(!ok) return;
+
+  f.completed=true;
+  f.completedAt=new Date().toISOString();
+
+  state.exp += Number(f.exp)||0;
+  state.coins += Number(f.coins)||0;
+  state.attrs[f.attr]=(Number(state.attrs[f.attr])||0)+(Number(f.gain)||0);
+
+  if(!Array.isArray(state.titles)) state.titles=[];
+  if(f.titleReward && !state.titles.includes(f.titleReward)) state.titles.push(f.titleReward);
+  if(f.titleReward) state.currentTitle=f.titleReward;
+
+  if(!Array.isArray(state.chapters)) state.chapters=["现实世界篇"];
+  if(f.chapterReward && !state.chapters.includes(f.chapterReward)) state.chapters.push(f.chapterReward);
+
+  if(!Array.isArray(state.completed)) state.completed=[];
+  state.completed.push({
+    title:f.title,
+    rank:"FINAL",
+    date:new Date().toLocaleDateString("zh-CN"),
+    rewards:`+${f.exp} EXP · +${f.coins} 金币 · ${f.attr} +${f.gain} · 解锁称号「${f.titleReward}」 · 解锁章节「${f.chapterReward}」`
+  });
+
+  toast("FINAL 完成：已解锁「"+f.chapterReward+"」");
+  saveState();
+}
+
+function buyItem(idx){
+  const item=state.shop[idx];
+  if(state.coins<item.cost){toast("金币不够");return}
+  state.coins-=item.cost; toast("已兑换："+item.name); saveState();
+}
+
+function normalizeTaskPayload(obj){
+  if(!obj || typeof obj!=="object") throw new Error("任务码格式无效");
+  const rank=String(obj.rank||"E").toUpperCase();
+  if(!RANKS.includes(rank)) throw new Error("任务等级无效");
+  const title=String(obj.title||"").trim();
+  if(!title) throw new Error("任务名称为空");
+
+  const attr=String(obj.attr||"探索");
+  const allowedAttrs=["体能","耐力","英语","日语","独立行动力","社交","财务","探索","陌生环境适应力","旅行规划能力","现实胆量","人生故事"];
+  const safeAttr=allowedAttrs.includes(attr)?attr:"探索";
+
+  return {
+    id:"imported_"+Date.now()+"_"+Math.floor(Math.random()*10000),
+    custom:true,
+    imported:true,
+    title,
+    rank,
+    exp:Math.max(1,Number(obj.exp)||100),
+    coins:Math.max(0,Number(obj.coins)||0),
+    attr:safeAttr,
+    gain:Math.max(1,Number(obj.gain)||1),
+    desc:String(obj.desc||"").trim(),
+    titleReward:String(obj.titleReward||"").trim(),
+    regionReward:String(obj.regionReward||"").trim()
+  };
+}
+
+function bytesToBase64Url(str){
+  const bytes=new TextEncoder().encode(str);
+  let binary="";
+  bytes.forEach(b=>binary+=String.fromCharCode(b));
+  return btoa(binary).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+
+function base64UrlToText(code){
+  let base=code.replace(/-/g,"+").replace(/_/g,"/");
+  while(base.length%4) base+="=";
+  const binary=atob(base);
+  const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+
+function encodeTaskCode(task){
+  const payload={
+    v:1,
+    title:task.title,
+    rank:task.rank,
+    exp:Number(task.exp)||100,
+    coins:Number(task.coins)||0,
+    attr:task.attr||"探索",
+    gain:Number(task.gain)||1,
+    desc:task.desc||"",
+    titleReward:task.titleReward||"",
+    regionReward:task.regionReward||""
+  };
+  return "ZYQ1:"+bytesToBase64Url(JSON.stringify(payload));
+}
+
+function decodeTaskCode(code){
+  const raw=String(code||"").trim();
+  if(!raw) throw new Error("任务码为空");
+  if(raw.startsWith("ZYQ1:")){
+    const json=base64UrlToText(raw.slice(5).trim());
+    return JSON.parse(json);
+  }
+  if(raw.startsWith("{")){
+    return JSON.parse(raw);
+  }
+  throw new Error("任务码格式不正确");
+}
+
+async function copyTaskCode(id){
+  const task=state.tasks.find(t=>t.id===id);
+  if(!task) return;
+  const code=encodeTaskCode(task);
+  try{
+    await navigator.clipboard.writeText(code);
+    toast("任务码已复制");
+  }catch(e){
+    prompt("复制下面的任务码：",code);
+  }
+}
+
+function openImportModal(){
+  document.getElementById("taskCodeInput").value="";
+  document.getElementById("importTaskModal").style.display="block";
+}
+
+function closeImportModal(){
+  document.getElementById("importTaskModal").style.display="none";
+}
+
+function importTaskCode(){
+  try{
+    const payload=decodeTaskCode(document.getElementById("taskCodeInput").value);
+    const task=normalizeTaskPayload(payload);
+
+    const duplicate=state.tasks.some(t=>
+      t.title===task.title &&
+      t.rank===task.rank &&
+      Number(t.exp)===Number(task.exp) &&
+      String(t.desc||"")===String(task.desc||"")
+    );
+    if(duplicate){
+      toast("这个任务已经在任务大厅里了");
+      return;
+    }
+
+    state.tasks.push(task);
+    state.selectedRank=task.rank;
+    closeImportModal();
+    saveState();
+    setTimeout(()=>scrollToSection("tasksSection"),100);
+    toast("任务已导入："+task.title);
+  }catch(e){
+    toast(e.message||"任务码无效");
+  }
+}
+
+function openTaskModal(){document.getElementById("taskModal").style.display="block"}
+function closeTaskModal(){document.getElementById("taskModal").style.display="none"}
+function createTask(){
+  const title=document.getElementById("taskName").value.trim();
+  if(!title){toast("先写任务名称");return}
+  const newTask={
+    id:"custom_"+Date.now(), custom:true, title,
+    rank:document.getElementById("taskRank").value,
+    exp:Number(document.getElementById("taskExp").value)||120,
+    coins:Number(document.getElementById("taskCoins").value)||0,
+    attr:document.getElementById("taskAttr").value,
+    gain:Number(document.getElementById("taskGain").value)||1,
+    titleReward:document.getElementById("taskTitleReward").value.trim(),
+    desc:document.getElementById("taskDesc").value.trim()
+  };
+  state.tasks.push(newTask); state.selectedRank=newTask.rank;
+  document.getElementById("taskName").value=""; document.getElementById("taskDesc").value=""; document.getElementById("taskTitleReward").value="";
+  closeTaskModal(); toast("任务已加入大厅"); saveState();
+}
+function deleteTask(id){state.tasks=state.tasks.filter(t=>t.id!==id); toast("已删除任务"); saveState()}
+function exportSave(){
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="zuoyu-life-save-v2.json"; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function importSave(event){
+  const file=event.target.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=()=>{try{state=JSON.parse(reader.result);localStorage.setItem("zuoyuLifeV2",JSON.stringify(state));render();toast("存档导入成功")}catch(e){toast("存档文件无效")}};
+  reader.readAsText(file);
+}
+function resetAll(){
+  if(confirm("确定重置全部进度吗？这会清空当前存档。")){
+    state=migrateState(deepClone(DEFAULT_STATE)); localStorage.setItem("zuoyuLifeV2",JSON.stringify(state)); render(); toast("系统已重置，但真实历史战绩已保留");
+  }
+}
+function scrollToSection(id){document.getElementById(id).scrollIntoView({behavior:"smooth",block:"start"})}
+window.addEventListener("click",function(e){
+  const taskModal=document.getElementById("taskModal");
+  const importModal=document.getElementById("importTaskModal");
+  if(e.target===taskModal) closeTaskModal();
+  if(e.target===importModal) closeImportModal();
+})
+render();
+</script>
+</body>
+</html>
