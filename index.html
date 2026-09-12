@@ -366,9 +366,9 @@ const DEFAULT_STATE={
     id:"final_escape_cn",
     title:"逃离中国",
     completed:false,
-    exp:20000,
-    coins:10000,
-    attr:"独立行动力",
+    exp:999999999,
+    coins:999999999,
+    attr:"独立行动力",  
     gain:10,
     titleReward:"自由迁徙者",
     chapterReward:"海外生活篇",
@@ -452,6 +452,9 @@ function migrateState(s){
   }else{
     const df=DEFAULT_STATE.finalTask;
     s.finalTask={...df,...s.finalTask};
+    s.finalTask.exp=999999999;
+s.finalTask.coins=999999999;
+s.finalTask.gain=20;
     if(!Array.isArray(s.finalTask.conditions)) s.finalTask.conditions=[...df.conditions];
   }
 
