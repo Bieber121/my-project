@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0b0f14" />
+<title>佐谕人生系统 v1.0</title>
+<style>
+:root{
+  --bg:#0b0f14;--card:#121922;--card2:#17212d;--text:#edf4ff;--muted:#8fa3b8;
+  --line:#223041;--accent:#5ca9ff;--good:#64d98b;--warn:#f4c95d;--bad:#ff7575;
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(180deg,#071018 0%,var(--bg) 35%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}
+.wrap{max-width:720px;margin:0 auto;padding:calc(18px + env(safe-area-inset-top)) 16px calc(100px + env(safe-area-inset-bottom))}
+.hero{padding:18px;border:1px solid var(--line);background:rgba(18,25,34,.9);border-radius:22px;box-shadow:0 10px 40px rgba(0,0,0,.25)}
+.topline{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+h1{font-size:26px;margin:0 0 5px}.sub{color:var(--muted);font-size:13px}
+.badge{font-size:12px;background:#1d2b39;border:1px solid #2f4358;padding:7px 10px;border-radius:999px;color:#cfe6ff}
+.levelrow{display:flex;align-items:center;gap:14px;margin-top:18px}
+.rank{font-size:42px;font-weight:900;letter-spacing:-1px;color:#fff}
+.lvl{flex:1}
+.progress{height:10px;background:#0b1118;border-radius:999px;overflow:hidden;border:1px solid var(--line)}
+.bar{height:100%;width:0%;background:linear-gradient(90deg,#4d8fff,#7fbbff)}
+.small{font-size:12px;color:var(--muted);margin-top:6px;display:flex;justify-content:space-between}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:14px}
+.stat,.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px}
+.stat b{font-size:24px;display:block;margin-top:4px}
+.section{margin-top:20px}.section h2{font-size:18px;margin:0 0 10px}
+.tabs{display:flex;gap:8px;overflow:auto;padding-bottom:4px;margin-bottom:10px}
+.tabs button{white-space:nowrap}
+button{appearance:none;border:1px solid #31465e;background:#172433;color:#eef6ff;padding:10px 12px;border-radius:12px;font-weight:700}
+button:active{transform:scale(.98)}
+button.primary{background:#1d6fd6;border-color:#3187ef}
+button.good{background:#153d2b;border-color:#28734e;color:#baf7cf}
+button.danger{background:#3d1d20;border-color:#71333a;color:#ffc2c7}
+.task{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:10px}
+.rankpill{min-width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-weight:900;background:#1b2835;border:1px solid #33485f}
+.taskmain{flex:1}.tasktitle{font-weight:800}.meta{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5}
+.taskactions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.attrgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.attr{padding:12px;border-radius:15px;background:var(--card2);border:1px solid var(--line)}
+.attr span{font-size:12px;color:var(--muted)}.attr b{float:right}
+.record{padding:14px;border-left:4px solid var(--good);background:var(--card);border-radius:14px;margin-bottom:10px}
+.shop{display:grid;grid-template-columns:1fr;gap:10px}
+.shopitem{display:flex;justify-content:space-between;gap:14px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
+.footerbar{position:fixed;left:0;right:0;bottom:0;background:rgba(9,14,20,.93);backdrop-filter:blur(16px);border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom));z-index:50}
+.footerbar .inner{max-width:720px;margin:0 auto;display:flex;gap:8px}
+.footerbar button{flex:1;font-size:12px;padding:10px 6px}
+input,select{width:100%;background:#0d141c;border:1px solid #2a3c50;color:#fff;padding:11px 12px;border-radius:12px;margin-top:8px}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;padding:20px}
+.modalbox{max-width:560px;margin:8vh auto;background:#101821;border:1px solid #2d4156;border-radius:20px;padding:18px}
+.modalbox h3{margin-top:0}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.note{font-size:12px;color:var(--muted);line-height:1.6}
+.hidden{display:none}
+.toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:#101923;border:1px solid #3c536d;padding:10px 14px;border-radius:999px;z-index:200;display:none;white-space:nowrap}
+@media(min-width:600px){.grid{grid-template-columns:repeat(4,1fr)}.attrgrid{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div class="topline">
+      <div>
+        <h1>佐谕人生系统</h1>
+        <div class="sub">现实人生 RPG · v1.0</div>
+      </div>
+      <div class="badge" id="titleBadge">独行者Ⅰ</div>
+    </div>
+
+    <div class="levelrow">
+      <div class="rank" id="rankText">D</div>
+      <div class="lvl">
+        <div><b id="levelText">Lv. 18</b> · <span id="expText">680 / 1000 EXP</span></div>
+        <div class="progress"><div class="bar" id="expBar"></div></div>
+        <div class="small"><span>当前阶级</span><span id="nextRankText">下一阶：C</span></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="stat"><span>金币</span><b id="coins">320</b></div>
+      <div class="stat"><span>完成任务</span><b id="doneCount">1</b></div>
+      <div class="stat"><span>已解锁地区</span><b id="regionCount">1</b></div>
+      <div class="stat"><span>称号</span><b id="titleCount">1</b></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>属性面板</h2>
+    <div class="attrgrid" id="attrs"></div>
+  </div>
+
+  <div class="section">
+    <h2>任务大厅</h2>
+    <div class="tabs" id="rankTabs"></div>
+    <div id="taskList"></div>
+    <button class="primary" onclick="openTaskModal()">＋ 自定义任务</button>
+  </div>
+
+  <div class="section">
+    <h2>历史战绩</h2>
+    <div id="records"></div>
+  </div>
+
+  <div class="section">
+    <h2>奖励商店</h2>
+    <div class="shop" id="shop"></div>
+  </div>
+
+  <div class="section">
+    <h2>系统数据</h2>
+    <div class="card">
+      <div class="note">所有数据默认保存在当前浏览器本机。换手机、清理 Safari 网站数据或换浏览器前，请先导出存档。</div>
+      <div class="taskactions">
+        <button onclick="exportSave()">导出存档</button>
+        <button onclick="document.getElementById('importFile').click()">导入存档</button>
+        <button class="danger" onclick="resetGame()">重置</button>
+        <input id="importFile" type="file" accept=".json" style="display:none" onchange="importSave(event)" />
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footerbar">
+  <div class="inner">
+    <button onclick="scrollToTop()">主页</button>
+    <button onclick="document.querySelectorAll('.section')[1].scrollIntoView({behavior:'smooth'})">任务</button>
+    <button onclick="document.querySelectorAll('.section')[2].scrollIntoView({behavior:'smooth'})">战绩</button>
+    <button onclick="document.querySelectorAll('.section')[3].scrollIntoView({behavior:'smooth'})">商店</button>
+  </div>
+</div>
+
+<div class="modal" id="taskModal">
+  <div class="modalbox">
+    <h3>创建现实任务</h3>
+    <input id="newTaskTitle" placeholder="任务名称，例如：下班跨城住一晚" />
+    <div class="row">
+      <select id="newTaskRank">
+        <option>E</option><option>D</option><option>C</option><option>B</option><option>A</option><option>S</option><option>SS</option><option>SSS</option>
+      </select>
+      <input id="newTaskExp" type="number" value="100" min="10" placeholder="EXP" />
+    </div>
+    <div class="row">
+      <input id="newTaskCoins" type="number" value="50" min="0" placeholder="金币" />
+      <select id="newTaskAttr">
+        <option value="体能">体能</option><option value="耐力">耐力</option><option value="英语">英语</option><option value="日语">日语</option>
+        <option value="独立行动力">独立行动力</option><option value="社交">社交</option><option value="财务">财务</option><option value="探索">探索</option>
+      </select>
+    </div>
+    <input id="newTaskDesc" placeholder="备注/要求（可选）" />
+    <div class="taskactions">
+      <button class="primary" onclick="addTask()">创建</button>
+      <button onclick="closeTaskModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const RANKS=["E","D","C","B","A","S","SS","SSS"];
+const rankNeed={E:0,D:1000,C:3000,B:7000,A:14000,S:26000,SS:45000,SSS:70000};
+const baseTasks=[
+ {id:"e1",rank:"E",title:"跑步机 20 分钟",exp:80,coins:40,attr:"耐力",gain:1,desc:"完成即可，不要求速度。"},
+ {id:"d1",rank:"D",title:"独自探索一个没去过的城区",exp:180,coins:80,attr:"探索",gain:1,desc:"完成路线并留下至少一张照片。"},
+ {id:"c1",rank:"C",title:"下班后跨城住一晚",exp:350,coins:160,attr:"独立行动力",gain:1,desc:"尽量不消耗年假。"},
+ {id:"b1",rank:"B",title:"参加一次正式大众比赛",exp:700,coins:300,attr:"体能",gain:2,desc:"以完赛为第一目标。"},
+ {id:"a1",rank:"A",title:"独自完成一次海外远征",exp:1400,coins:600,attr:"独立行动力",gain:2,desc:"至少 3 天，独立处理交通、住宿和行程。"},
+ {id:"s1",rank:"S",title:"取得海外合法工作机会",exp:3000,coins:1200,attr:"独立行动力",gain:3,desc:"以真实 offer / COE / 工签推进为准。"},
+ {id:"ss1",rank:"SS",title:"完成跨国迁移并稳定生活 90 天",exp:6000,coins:2500,attr:"独立行动力",gain:4,desc:"建立稳定收入、住所和日常系统。"},
+ {id:"sss1",rank:"SSS",title:"实现高自由度跨国生活",exp:12000,coins:5000,attr:"探索",gain:5,desc:"达到你自己定义的长期自由标准。"}
+];
+
+const defaultState={
+ level:18, exp:680, coins:320, rank:"D", title:"独行者Ⅰ",
+ titles:["独行者Ⅰ"], regions:["日本"],
+ attrs:{"体能":31,"耐力":27,"英语":18,"日语":9,"独立行动力":42,"社交":21,"财务":17,"探索":38},
+ tasks:baseTasks,
+ completed:[
+  {title:"七日海外独立远征（日本）",rank:"A",date:"2026-08",rewards:"海外独立行动力 +2 · 陌生环境适应力 +2 · 旅行规划能力 +2 · 现实胆量 +2 · 人生故事 +3 · 解锁区域「日本」 · 称号「独行者Ⅰ」"}
+ ],
+ shop:[
+  {name:"无糖可乐",cost:300},
+  {name:"吃一顿想吃的",cost:1000},
+  {name:"买一个小东西",cost:3000},
+  {name:"周边城市旅行",cost:8000},
+  {name:"海外支线基金",cost:20000}
+ ]
+};
+
+let state=load();
+let selectedRank="D";
+
+function load(){
+ try{
+  const x=localStorage.getItem("zuoyuLifeRPG");
+  return x?JSON.parse(x):structuredClone(defaultState);
+ }catch(e){return structuredClone(defaultState)}
+}
+function save(){localStorage.setItem("zuoyuLifeRPG",JSON.stringify(state));render()}
+function currentRankByExp(exp){
+ let r="E"; for(const x of RANKS){if(exp>=rankNeed[x]) r=x} return r;
+}
+function expForNextRank(){
+ const idx=RANKS.indexOf(state.rank);
+ if(idx===RANKS.length-1) return rankNeed.SSS;
+ return rankNeed[RANKS[idx+1]];
+}
+function render(){
+ state.rank=currentRankByExp(state.exp);
+ document.getElementById("rankText").textContent=state.rank;
+ document.getElementById("levelText").textContent="Lv. "+state.level;
+ const next=expForNextRank();
+ document.getElementById("expText").textContent=state.exp+" / "+next+" EXP";
+ document.getElementById("expBar").style.width=Math.min(100,(state.exp/next)*100)+"%";
+ const idx=RANKS.indexOf(state.rank);
+ document.getElementById("nextRankText").textContent=idx===RANKS.length-1?"最高阶级":"下一阶："+RANKS[idx+1];
+ document.getElementById("coins").textContent=state.coins;
+ document.getElementById("doneCount").textContent=state.completed.length;
+ document.getElementById("regionCount").textContent=state.regions.length;
+ document.getElementById("titleCount").textContent=state.titles.length;
+ document.getElementById("titleBadge").textContent=state.title;
+ document.getElementById("attrs").innerHTML=Object.entries(state.attrs).map(([k,v])=>`<div class="attr"><span>${k}</span><b>${v}</b></div>`).join("");
+ document.getElementById("rankTabs").innerHTML=RANKS.map(r=>`<button class="${r===selectedRank?'primary':''}" onclick="selectedRank='${r}';render()">${r}</button>`).join("");
+ const list=state.tasks.filter(t=>t.rank===selectedRank);
+ document.getElementById("taskList").innerHTML=list.length?list.map(t=>`
+  <div class="task">
+   <div class="rankpill">${t.rank}</div>
+   <div class="taskmain">
+    <div class="tasktitle">${escapeHtml(t.title)}</div>
+    <div class="meta">${escapeHtml(t.desc||"")}<br>奖励：+${t.exp} EXP · +${t.coins} 金币 · ${t.attr} +${t.gain||1}</div>
+    <div class="taskactions">
+      <button class="good" onclick="completeTask('${t.id}')">完成任务</button>
+      ${t.custom?`<button class="danger" onclick="deleteTask('${t.id}')">删除</button>`:""}
+    </div>
+   </div>
+  </div>`).join(""):`<div class="card note">这个阶级暂时没有任务。</div>`;
+ document.getElementById("records").innerHTML=state.completed.slice().reverse().map(r=>`
+   <div class="record"><b>${r.rank}级 · ${escapeHtml(r.title)}</b><div class="meta">${escapeHtml(r.date||"")}</div><div class="meta">${escapeHtml(r.rewards||"")}</div></div>`).join("");
+ document.getElementById("shop").innerHTML=state.shop.map((x,i)=>`
+   <div class="shopitem"><div><b>${escapeHtml(x.name)}</b><div class="meta">${x.cost} 金币</div></div><button onclick="buy(${i})">兑换</button></div>`).join("");
+}
+function completeTask(id){
+ const t=state.tasks.find(x=>x.id===id); if(!t)return;
+ state.exp+=Number(t.exp)||0; state.coins+=Number(t.coins)||0;
+ state.attrs[t.attr]=(state.attrs[t.attr]||0)+(Number(t.gain)||1);
+ state.level=Math.max(state.level,Math.floor(state.exp/500)+1);
+ state.completed.push({title:t.title,rank:t.rank,date:new Date().toLocaleDateString("zh-CN"),rewards:`+${t.exp} EXP · +${t.coins} 金币 · ${t.attr} +${t.gain||1}`});
+ toast(`任务完成：${t.title}`);
+ save();
+}
+function deleteTask(id){state.tasks=state.tasks.filter(x=>x.id!==id);save()}
+function buy(i){
+ const item=state.shop[i];
+ if(state.coins<item.cost){toast("金币不够");return}
+ state.coins-=item.cost; toast("已兑换："+item.name); save();
+}
+function openTaskModal(){document.getElementById("taskModal").style.display="block"}
+function closeTaskModal(){document.getElementById("taskModal").style.display="none"}
+function addTask(){
+ const title=document.getElementById("newTaskTitle").value.trim();
+ if(!title){toast("先写任务名称");return}
+ const rank=document.getElementById("newTaskRank").value;
+ state.tasks.push({
+   id:"c"+Date.now(), custom:true, rank, title,
+   exp:Number(document.getElementById("newTaskExp").value)||100,
+   coins:Number(document.getElementById("newTaskCoins").value)||0,
+   attr:document.getElementById("newTaskAttr").value, gain:1,
+   desc:document.getElementById("newTaskDesc").value.trim()
+ });
+ selectedRank=rank;
+ document.getElementById("newTaskTitle").value="";
+ document.getElementById("newTaskDesc").value="";
+ closeTaskModal(); save(); toast("任务已加入大厅");
+}
+function exportSave(){
+ const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+ const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="佐谕人生系统存档.json"; a.click();
+ setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function importSave(e){
+ const f=e.target.files[0]; if(!f)return;
+ const reader=new FileReader();
+ reader.onload=()=>{try{state=JSON.parse(reader.result);save();toast("存档导入成功")}catch(err){toast("存档文件无效")}};
+ reader.readAsText(f);
+}
+function resetGame(){
+ if(confirm("确定重置全部数据？这会清空当前进度。")){
+   state=structuredClone(defaultState); save(); toast("系统已重置");
+ }
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function toast(msg){const x=document.getElementById("toast");x.textContent=msg;x.style.display="block";setTimeout(()=>x.style.display="none",1800)}
+function scrollToTop(){window.scrollTo({top:0,behavior:"smooth"})}
+render();
+</script>
+</body>
+</html>
