@@ -530,6 +530,38 @@ body.modal-open{overflow:hidden}
 .nav-item svg{display:block;margin:0 auto 4px;width:20px;height:20px;stroke:currentColor}
 .nav-item.active{background:#fff;color:#1d1d1f;box-shadow:0 3px 12px rgba(0,0,0,.07)}
 
+/* FINAL entrance: decorative layers never intercept navigation or condition clicks. */
+body{--final-blur:8px;--final-scale:1.065;--final-shake:1.5px;--final-glow:.65}
+body[data-final-device="tablet"]{--final-blur:4px;--final-scale:1.035;--final-shake:.7px;--final-glow:.4}
+body[data-final-device="mobile"]{--final-blur:2px;--final-scale:1.015;--final-shake:.3px;--final-glow:.25}
+.final-section{overflow:clip}
+.final-section .reveal{opacity:1;transform:none;transition:none}
+.final-section.final-pending :is(.final-kicker,.final-title,.final-divider,.final-desc,.final-manifesto,.final-progress-wrap,.final-condition,.final-rewards,.final-actions,.final-complete){opacity:0}
+.final-atmosphere{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;contain:paint}
+.final-aura{position:absolute;inset:0;opacity:0;background:radial-gradient(ellipse at 50% 25%,rgba(212,165,62,.19),transparent 55%)}
+.final-scan{position:absolute;left:0;top:26%;width:100%;height:2px;opacity:0;background:linear-gradient(90deg,transparent,#efd491,transparent);box-shadow:0 0 24px 5px rgba(219,175,74,.25)}
+.final-particles{position:absolute;inset:0}
+.final-particles i{position:absolute;width:3px;height:3px;border-radius:50%;background:#e4bf70;box-shadow:0 0 9px rgba(226,188,96,.45);opacity:0}
+.final-vignette{position:fixed;inset:0;z-index:84;pointer-events:none;opacity:0;background:radial-gradient(ellipse at 50% 42%,transparent 10%,rgba(0,0,0,.88) 100%)}
+.final-chapter{position:absolute;top:-44px;left:0;right:0;pointer-events:none;opacity:0;color:#edcf87;font-size:11px;letter-spacing:.32em}
+.final-chapter span{display:block;margin-top:9px;font-size:14px;letter-spacing:.24em}
+.bottom-nav{isolation:isolate}
+.nav-pressure-shade{position:absolute;inset:0;border-radius:inherit;background:#080706;opacity:0;pointer-events:none;z-index:-1}
+.nav-item{position:relative}
+.nav-item[data-target="finalSection"].active{color:#e8c574;background:#17130b;box-shadow:inset 0 0 0 1px rgba(226,188,96,.3)}
+.nav-item[data-target="finalSection"]::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;box-shadow:0 0 22px rgba(226,188,96,var(--final-glow)),inset 0 0 15px rgba(226,188,96,.15)}
+.bottom-nav.final-pressure .nav-item[data-target="finalSection"]::after{animation:final-nav-pulse 1.25s ease-out both}
+.final-actions .final-action-disabled{position:relative}
+.final-actions .final-action-disabled::after{content:"";position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;border:1px solid rgba(226,188,96,.25);box-shadow:0 0 18px rgba(226,188,96,var(--final-glow));opacity:.1}
+.final-settled.final-in-view .final-action-disabled::after{animation:final-locked-breathe 4s ease-in-out infinite}
+.final-settled.final-in-view::after{animation:final-grid-drift 18s ease-in-out infinite alternate}
+body[data-final-device="mobile"] .final-particles i{box-shadow:none;width:2px;height:2px}
+body[data-final-device="mobile"] .final-scan{box-shadow:0 0 10px rgba(219,175,74,.2)}
+body[data-final-device="mobile"] .final-settled::after{animation:none}
+@keyframes final-nav-pulse{0%,100%{opacity:0;transform:scale(1)}35%{opacity:1;transform:scale(1.025)}}
+@keyframes final-locked-breathe{0%,100%{opacity:.08}50%{opacity:.25}}
+@keyframes final-grid-drift{from{transform:translateY(0);opacity:.55}to{transform:translateY(10px);opacity:.85}}
+
 /* ---------- Modal ---------- */
 .modal{
   position:fixed;inset:0;z-index:120;display:none;
@@ -651,6 +683,8 @@ textarea{min-height:108px;resize:vertical}
 @media (prefers-reduced-motion:reduce){
   *{scroll-behavior:auto!important;animation:none!important;transition:none!important}
   .reveal{opacity:1;transform:none}
+  .final-section.final-pending :is(.final-kicker,.final-title,.final-divider,.final-desc,.final-manifesto,.final-progress-wrap,.final-condition,.final-rewards,.final-actions,.final-complete){opacity:1}
+  .final-atmosphere,.final-vignette,.final-chapter{display:none}
 }
 </style>
 </head>
@@ -859,7 +893,13 @@ textarea{min-height:108px;resize:vertical}
 </section>
 
 <section class="final-section" id="finalSection">
+  <div class="final-atmosphere" aria-hidden="true">
+    <div class="final-aura"></div>
+    <div class="final-scan"></div>
+    <div class="final-particles"></div>
+  </div>
   <div class="final-inner">
+    <div class="final-chapter" aria-hidden="true">FINAL CHAPTER<span>终局已开启</span></div>
     <div class="final-watermark" aria-hidden="true">FINAL</div>
     <div class="final-kicker reveal">LIFE MAIN QUEST · TERMINAL OBJECTIVE</div>
     <div class="final-title reveal reveal-delay-1"><span id="finalTitle">逃离中国</span></div>
@@ -886,8 +926,10 @@ textarea{min-height:108px;resize:vertical}
 <section id="dataSection" style="display:none" aria-hidden="true"></section>
 
 
-<nav class="bottom-nav">
-  <button class="nav-item active" data-target="home" onclick="goTo('home')">
+<div class="final-vignette" aria-hidden="true"></div>
+<nav class="bottom-nav" aria-label="主导航">
+  <div class="nav-pressure-shade" aria-hidden="true"></div>
+  <button class="nav-item" data-target="home" onclick="goTo('home')">
     <svg viewBox="0 0 24 24" fill="none"><path d="M3 11.5 12 4l9 7.5v8a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H4.5A1.5 1.5 0 0 1 3 19.5v-8Z" stroke-width="1.8"/></svg>
     首页
   </button>
@@ -1478,24 +1520,270 @@ function setupReveal(){
       }
     })
   },{threshold:.14});
-  document.querySelectorAll(".reveal").forEach(el=>obs.observe(el));
+  document.querySelectorAll(".reveal").forEach(el=>{
+    if(!el.closest(".final-section"))obs.observe(el);
+  });
 }
 function setupParallax(){
   const hero=document.querySelector(".hero");
   window.addEventListener("scroll",()=>{
-    if(!hero)return;
+    if(!hero||matchMedia("(prefers-reduced-motion: reduce)").matches)return;
     const y=Math.min(window.scrollY,window.innerHeight);
     hero.style.setProperty("--heroShift",(y*.08)+"px");
   },{passive:true});
 }
+const PAGE_ROUTES=["home","tasksSection","recordsSection","shopSection","finalSection"];
+let navigatePage;
+function currentPageRoute(){
+  // Hash routes work on static hosting without server-side pathname rewrites.
+  const route=location.hash.slice(1);
+  return PAGE_ROUTES.includes(route)?route:"home";
+}
 function setupNavSpy(){
-  const ids=["home","tasksSection","recordsSection","shopSection","finalSection"];
-  const obs=new IntersectionObserver(entries=>{
-    const visible=entries.filter(x=>x.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];
-    if(!visible)return;
-    document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.target===visible.target.id));
-  },{rootMargin:"-35% 0px -50% 0px",threshold:[0,.2,.5]});
-  ids.forEach(id=>{const el=document.getElementById(id);if(el)obs.observe(el)});
+  const sections=PAGE_ROUTES.map(id=>document.getElementById(id));
+  const entrance=setupFinalEntrance();
+  let scrollFrame=0,scrollTimer=0,pendingRoute=null,routeScrollPosition=null;
+  function syncRoute(source){
+    const route=currentPageRoute();
+    document.querySelectorAll(".nav-item").forEach(button=>{
+      const active=button.dataset.target===route;
+      button.classList.toggle("active",active);
+      if(active)button.setAttribute("aria-current","page");
+      else button.removeAttribute("aria-current");
+    });
+    entrance.setRoute(route,source);
+  }
+  function routeFromViewport(){
+    // Read all boundaries together, not only the entries that changed in an IO callback.
+    let route="home";
+    sections.forEach(section=>{
+      if(section.getBoundingClientRect().top<=innerHeight*.55)route=section.id;
+    });
+    return route;
+  }
+  function updateFromScroll(){
+    scrollFrame=0;
+    if(!pendingRoute&&(routeScrollPosition===null||Math.abs(scrollY-routeScrollPosition)>2)){
+      routeScrollPosition=null;
+      const route=routeFromViewport();
+      if(location.hash!=="#"+route){
+        history.replaceState(history.state,"","#"+route);
+        syncRoute("scroll");
+      }
+    }
+    entrance.checkVisibility();
+  }
+  function scheduleScroll(){
+    if(!scrollFrame)scrollFrame=requestAnimationFrame(updateFromScroll);
+    clearTimeout(scrollTimer);
+    // Also handles browsers without scrollend and an interrupted smooth scroll.
+    scrollTimer=setTimeout(finishScroll,160);
+  }
+  function finishScroll(){
+    // A short section may share the viewport with the next tab. Keep the requested
+    // URL on arrival, until the user actually scrolls away from that position.
+    if(pendingRoute)routeScrollPosition=scrollY;
+    pendingRoute=null;
+    clearTimeout(scrollTimer);
+    if(!scrollFrame)scrollFrame=requestAnimationFrame(updateFromScroll);
+  }
+  navigatePage=(id,{historyMode="push",behavior="smooth"}={})=>{
+    if(!PAGE_ROUTES.includes(id))return;
+    pendingRoute=id;
+    if(historyMode!=="none"&&location.hash!=="#"+id){
+      history[historyMode==="push"?"pushState":"replaceState"](history.state,"","#"+id);
+    }
+    syncRoute("navigation");
+    document.getElementById(id).scrollIntoView({
+      behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"instant":behavior,
+      block:"start"
+    });
+    clearTimeout(scrollTimer);
+    scrollTimer=setTimeout(finishScroll,160);
+  };
+  function restoreRoute(){
+    const route=currentPageRoute();
+    if(!location.hash)history.replaceState(history.state,"","#"+route);
+    navigatePage(route,{historyMode:"none",behavior:"instant"});
+  }
+  if("scrollRestoration" in history)history.scrollRestoration="manual";
+  window.addEventListener("popstate",restoreRoute);
+  window.addEventListener("hashchange",restoreRoute);
+  window.addEventListener("pageshow",restoreRoute);
+  window.addEventListener("scroll",scheduleScroll,{passive:true});
+  window.addEventListener("scrollend",finishScroll,{passive:true});
+  window.addEventListener("resize",scheduleScroll,{passive:true});
+  // User input can interrupt a smooth route transition immediately.
+  window.addEventListener("wheel",()=>{pendingRoute=null},{passive:true});
+  window.addEventListener("touchstart",()=>{pendingRoute=null},{passive:true});
+  window.addEventListener("keydown",event=>{
+    if(["ArrowUp","ArrowDown","PageUp","PageDown","Home","End"," "].includes(event.key))pendingRoute=null;
+  });
+  restoreRoute();
+}
+
+function setupFinalEntrance(){
+  const section=document.getElementById("finalSection");
+  const nav=document.querySelector(".bottom-nav");
+  const reduced=matchMedia("(prefers-reduced-motion: reduce)");
+  const phone=matchMedia("(max-width: 768px) and (pointer: coarse)");
+  const compact=matchMedia("(max-width: 1024px)");
+  const coarse=matchMedia("(pointer: coarse)");
+  const particles=section.querySelector(".final-particles");
+  let route=null,played=false,running=false,animations=[],finishTimer=0,navTimer=0,observer;
+
+  function cancelAnimations(){
+    clearTimeout(finishTimer);
+    clearTimeout(navTimer);
+    animations.forEach(animation=>animation.cancel());
+    animations=[];
+    running=false;
+    nav.classList.remove("final-pressure");
+  }
+  function settle(){
+    cancelAnimations();
+    section.classList.remove("final-pending");
+    section.classList.add("final-settled");
+  }
+  function reset(){
+    cancelAnimations();
+    played=false;
+    section.classList.remove("final-settled");
+    section.classList.toggle("final-pending",!reduced.matches);
+  }
+  function deviceProfile(){
+    const device=phone.matches?"mobile":compact.matches||coarse.matches?"tablet":"desktop";
+    document.body.dataset.finalDevice=device;
+    const count=reduced.matches?0:device==="mobile"?8:device==="tablet"?14:24;
+    particles.replaceChildren(...Array.from({length:count},(_,i)=>{
+      const particle=document.createElement("i");
+      particle.style.left=((i*37+11)%100)+"%";
+      particle.style.top=(8+(i*19)%76)+"%";
+      return particle;
+    }));
+  }
+  function animate(element,keyframes,options){
+    if(!element)return;
+    const animation=element.animate(keyframes,{duration:600,easing:"cubic-bezier(.16,.8,.25,1)",fill:"both",...options});
+    animations.push(animation);
+  }
+  function reveal(selector,delay,duration=550){
+    animate(section.querySelector(selector),[
+      {opacity:0,transform:"translateY(14px)"},
+      {opacity:1,transform:"translateY(0)"}
+    ],{delay,duration});
+  }
+  function play(){
+    if(played||route!=="finalSection")return;
+    played=true;
+    if(reduced.matches||!section.animate){settle();return}
+    running=true;
+    section.classList.remove("final-pending","final-settled");
+    nav.classList.add("final-pressure");
+    const profile=getComputedStyle(document.body);
+    const blur=profile.getPropertyValue("--final-blur").trim();
+    const scale=profile.getPropertyValue("--final-scale").trim();
+    const shake=parseFloat(profile.getPropertyValue("--final-shake"));
+
+    // 0–450ms: the HUD dims and FINAL pulses; the room then unseals.
+    animate(nav.querySelector(".nav-pressure-shade"),[
+      {opacity:0},{opacity:.97,offset:.16},{opacity:.97,offset:.68},{opacity:0}
+    ],{duration:1800,easing:"ease-in-out"});
+    nav.querySelectorAll('.nav-item:not([data-target="finalSection"])').forEach(item=>{
+      animate(item,[{opacity:1},{opacity:.3,offset:.16},{opacity:.3,offset:.68},{opacity:1}],{duration:1800,easing:"ease-in-out"});
+    });
+    animate(document.querySelector(".final-vignette"),[
+      {opacity:0},{opacity:.85,offset:.25},{opacity:.65,offset:.6},{opacity:0}
+    ],{duration:2400,easing:"ease-in-out"});
+    animate(section.querySelector(".final-aura"),[{opacity:0},{opacity:1,offset:.4},{opacity:0}],{delay:350,duration:2400});
+    animate(section.querySelector(".final-scan"),[
+      {opacity:0,transform:"translateX(-100%) scaleX(.5)"},
+      {opacity:.8,transform:"translateX(0) scaleX(1)",offset:.5},
+      {opacity:0,transform:"translateX(100%) scaleX(.5)"}
+    ],{delay:420,duration:950,easing:"ease-in-out"});
+    animate(section.querySelector(".final-inner"),[
+      {transform:"translateX(0)"},{transform:`translateX(${-shake}px)`},
+      {transform:`translateX(${shake}px)`},{transform:"translateX(0)"}
+    ],{delay:530,duration:190,easing:"ease-out"});
+    particles.querySelectorAll("i").forEach((particle,i)=>{
+      animate(particle,[{opacity:0,transform:"translateY(18px)"},{opacity:.5,offset:.35},{opacity:0,transform:"translateY(-42px)"}],{
+        delay:450+(i%6)*70,duration:1700,easing:"ease-out"
+      });
+    });
+    reveal(".final-kicker",480);
+    animate(section.querySelector(".final-title"),[
+      {opacity:0,filter:`blur(${blur})`,transform:`scale(${scale})`},
+      {opacity:1,filter:"blur(0px)",transform:"scale(1)"}
+    ],{delay:620,duration:750});
+    animate(section.querySelector(".final-chapter"),[
+      {opacity:0,transform:"translateY(5px)"},{opacity:1,offset:.22},
+      {opacity:1,offset:.68},{opacity:0,transform:"translateY(-4px)"}
+    ],{delay:460,duration:1150,easing:"linear"});
+    reveal(".final-divider",800);
+    reveal(".final-desc",900);
+    reveal(".final-manifesto",980);
+    reveal(".final-progress-wrap",1250);
+    section.querySelectorAll(".final-condition").forEach((condition,i)=>{
+      animate(condition,[{opacity:0,transform:"translateY(12px)"},{opacity:1,transform:"translateY(0)"}],{
+        delay:1450+Math.min(i,4)*120,duration:450
+      });
+    });
+    reveal(".final-rewards",2050,450);
+    reveal(".final-actions",2320,480);
+    reveal(".final-complete",2320,480);
+    navTimer=setTimeout(()=>nav.classList.remove("final-pressure"),1800);
+    finishTimer=setTimeout(settle,2800);
+  }
+  function checkVisibility(){
+    const rect=section.getBoundingClientRect();
+    const visible=Math.max(0,Math.min(rect.bottom,innerHeight)-Math.max(rect.top,0));
+    section.classList.toggle("final-in-view",visible>0&&!document.hidden&&route==="finalSection");
+    // A tall mobile section cannot reach a 45% intersectionRatio. Normalize to viewport height.
+    if(visible>=Math.min(rect.height,innerHeight)*.45)play();
+    if(visible===0&&route!=="finalSection"&&played)reset();
+  }
+  function observe(){
+    observer?.disconnect();
+    if("IntersectionObserver" in window){
+      const threshold=Math.min(.45,innerHeight*.45/Math.max(1,section.offsetHeight));
+      observer=new IntersectionObserver(checkVisibility,{threshold:[0,threshold]});
+      observer.observe(section);
+    }
+    checkVisibility();
+  }
+  function preferenceChanged(){
+    if(running)settle();
+    deviceProfile();
+    section.classList.toggle("final-pending",!played&&!reduced.matches);
+    observe();
+  }
+  [reduced,phone,compact,coarse].forEach(query=>query.addEventListener("change",preferenceChanged));
+  window.addEventListener("resize",observe,{passive:true});
+  document.addEventListener("visibilitychange",()=>{
+    if(document.hidden&&running)settle();
+    checkVisibility();
+  });
+  window.addEventListener("pagehide",()=>{if(running)settle()});
+  section.addEventListener("focusin",()=>{if(running)settle()});
+  // Cloud updates can replace condition nodes: show the latest state without replaying.
+  section.addEventListener("final-rendered",()=>{if(running)settle();observe()});
+  if("ResizeObserver" in window)new ResizeObserver(observe).observe(section);
+  deviceProfile();
+  reset();
+  observe();
+  return {
+    checkVisibility,
+    setRoute(next,source){
+      const previous=route;
+      route=next;
+      if(previous==="finalSection"&&next!==previous){
+        if(source==="navigation")reset();
+        else if(running)settle();
+      }
+      // Small boundary scrolls retain this visit; a full exit or another tab resets it.
+      checkVisibility();
+    }
+  };
 }
 
 /* ---------- Render ---------- */
@@ -1656,6 +1944,7 @@ function renderFinal(){
       actions.innerHTML=`<button class="btn btn-light final-action-disabled" disabled>LOCKED · 尚未满足全部条件</button>`;
     }
   }
+  document.getElementById("finalSection").dispatchEvent(new Event("final-rendered"));
 }
 function render(){
   renderHeader();
@@ -1883,7 +2172,10 @@ function resetAll(){
 }
 
 /* ---------- UI ---------- */
-function goTo(id){document.getElementById(id)?.scrollIntoView({behavior:"smooth",block:"start"})}
+function goTo(id){
+  if(PAGE_ROUTES.includes(id)&&navigatePage)navigatePage(id);
+  else document.getElementById(id)?.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"instant":"smooth",block:"start"});
+}
 function openSettingsModal(){openModal("settingsModal")}
 function closeSettingsModal(){closeModal("settingsModal")}
 function openTaskModal(){openModal("taskModal")}
