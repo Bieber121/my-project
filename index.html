@@ -111,10 +111,11 @@ body.modal-open{overflow:hidden}
   -webkit-background-clip:text;background-clip:text;color:transparent;
 }
 .hero-sub{
-  max-width:720px;margin:30px auto 0;
-  font-size:clamp(18px,2.3vw,28px);
-  line-height:1.35;letter-spacing:-.025em;color:#a1a1a6;font-weight:600;
+  width:min(100%,760px);margin:38px auto 0;
+  font-size:clamp(17px,1.75vw,23px);
+  line-height:1.55;letter-spacing:-.025em;color:#a1a1a6;font-weight:600;
 }
+.hero-sub-line{display:block;white-space:nowrap}
 .hero-cta{
   margin-top:32px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap
 }
@@ -670,6 +671,8 @@ textarea{min-height:108px;resize:vertical}
   .japan-photo-copy h3{font-size:38px}
   .japan-mini-card{min-height:300px}
   .hero{padding-left:16px;padding-right:16px}
+  .hero-sub{margin-top:32px;line-height:1.5}
+  .hero-sub-line{white-space:normal}
   .hero-status{grid-template-columns:repeat(2,1fr);gap:20px}
   .stats-grid{grid-template-columns:repeat(2,1fr)}
   .task-list{grid-template-columns:1fr}
@@ -704,10 +707,12 @@ textarea{min-height:108px;resize:vertical}
   <div class="hero-inner">
     <div class="eyebrow reveal">YOUR LIFE. ONE SYSTEM.</div>
     <h1 class="reveal reveal-delay-1">
-      让现实成长<br><span class="gradient">变得可见</span>
+      别只想<span class="gradient">去发生</span>
     </h1>
     <p class="hero-sub reveal reveal-delay-2">
-      任务、经验、战绩与主线。不是打卡工具，而是一份持续更新的人生存档。
+      <span class="hero-sub-line">未来我会在巴黎 在东京 在伦敦 在墨尔本 洛杉矶或者纽约</span>
+      <span class="hero-sub-line">我绝不会留在这里 这片浸满泪水的土地</span>
+      <span class="hero-sub-line">我要去到很远的地方 直到与过往彻底道别</span>
     </p>
     <div class="hero-cta reveal reveal-delay-3">
       <button class="btn btn-blue" onclick="goTo('tasksSection')">继续任务</button>
