@@ -865,7 +865,8 @@ textarea{min-height:108px;resize:vertical}
 <div class="toast" id="toast"></div>
 
 <script>
-const STORAGE_KEY="zuoyuLifeV2";
+const STORAGE_KEY="zuoyuLifeV2"; 
+const IS_PREVIEW=new URLSearchParams(location.search).get("preview")==="1";
 const RANKS=["E","D","C","B","A","S","SS","SSS"];
 const RANK_THRESHOLDS={E:0,D:300,C:900,B:2200,A:5000,S:9000,SS:15000,SSS:25000};
 
@@ -890,6 +891,7 @@ const DEFAULT_STATE={
   chapters:["现实世界篇"],
   selectedRank:"E",
   tasks:BASE_TASKS,
+  activeTasks:[],
   attrs:{
     "体能":10,"耐力":10,"英语":5,"日语":1,
     "独立行动力":12,"社交":6,"财务":5,"探索":8
@@ -947,6 +949,7 @@ function migrateState(s){
   s.chapters=Array.isArray(s.chapters)?s.chapters:["现实世界篇"];
   s.selectedRank=RANKS.includes(s.selectedRank)?s.selectedRank:"E";
   s.tasks=Array.isArray(s.tasks)?s.tasks:clone(BASE_TASKS);
+  s.activeTasks=Array.isArray(s.activeTasks)?s.activeTasks:[];
   s.attrs=s.attrs&&typeof s.attrs==="object"?s.attrs:clone(DEFAULT_STATE.attrs);
   s.completed=Array.isArray(s.completed)?s.completed:[];
   s.shop=Array.isArray(s.shop)?s.shop:clone(DEFAULT_STATE.shop);
@@ -1121,6 +1124,10 @@ function renderTasks(){
         <span class="rank-chip">${escapeHtml(t.rank)}</span>
         <span class="task-exp">+${safeNum(t.exp)} EXP</span>
       </div>
+      ${state.activeTasks.includes(t.id)
+  ? `<div style="margin:10px 0 2px"><span style="display:inline-flex;padding:6px 10px;border-radius:999px;background:#e8f2ff;color:#0071e3;font-size:12px;font-weight:700">正在进行</span></div>`
+  : ""
+}
       <h3>${escapeHtml(t.title)}</h3>
       <p>${escapeHtml(t.desc||"")}</p>
       <div class="reward-line">
@@ -1129,7 +1136,10 @@ function renderTasks(){
         ${t.titleReward?`<span class="reward-badge">${escapeHtml(t.titleReward)}</span>`:""}
       </div>
       <div class="card-actions">
-        <button class="action-btn" onclick="completeTask('${escapeHtml(t.id)}')">完成任务</button>
+        ${state.activeTasks.includes(t.id)
+  ? `<button class="action-btn" onclick="completeTask('${escapeHtml(t.id)}')">正在进行 · 完成任务</button>`
+  : `<button class="action-btn" onclick="acceptTask('${escapeHtml(t.id)}')">接取任务</button>`
+}
         <button class="action-btn secondary" onclick="copyTaskCode('${escapeHtml(t.id)}')">复制任务码</button>
         ${t.custom?`<button class="action-btn delete" onclick="deleteTask('${escapeHtml(t.id)}')">删除</button>`:""}
       </div>
@@ -1205,6 +1215,12 @@ function render(){
 
 /* ---------- Task system ---------- */
 function selectRank(r){state.selectedRank=r;save()}
+function acceptTask(id){
+  if(!state.activeTasks.includes(id)){
+    state.activeTasks.push(id);
+    save();
+  }
+}
 function completeTask(id){
   const t=state.tasks.find(x=>x.id===id);
   if(!t)return;
@@ -1224,6 +1240,9 @@ function completeTask(id){
     rewards:`+${safeNum(t.exp)} EXP · +${safeNum(t.coins)} 金币 · ${t.attr} +${safeNum(t.gain,1)}${t.titleReward?" · 解锁称号「"+t.titleReward+"」":""}`
   });
 
+  state.activeTasks=state.activeTasks.filter(taskId=>taskId!==id);
+  state.tasks=state.tasks.filter(x=>x.id!==id);
+  
   localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
   showReward(t);
   render();
@@ -1415,8 +1434,36 @@ function toast(msg){
   clearTimeout(toastTimer);
   toastTimer=setTimeout(()=>t.classList.remove("show"),1800);
 }
+function applyPreviewMode(){
+  if(!IS_PREVIEW)return;
 
+  const blockedActions=[
+    "acceptTask(",
+    "completeTask(",
+    "deleteTask(",
+    "buyItem(",
+    "completeFinalTask(",
+    "openImportModal(",
+    "openSettingsModal(",
+    "openTaskModal("
+  ];
+
+  document.querySelectorAll("button[onclick]").forEach(btn=>{
+    const action=btn.getAttribute("onclick")||"";
+    if(blockedActions.some(x=>action.includes(x))){
+      btn.style.display="none";
+    }
+  });
+}
+
+if(IS_PREVIEW){
+  new MutationObserver(applyPreviewMode).observe(document.body,{
+    childList:true,
+    subtree:true
+  });
+}
 render();
+applyPreviewMode();
 setupReveal();
 setupParallax();
 setupNavSpy();
