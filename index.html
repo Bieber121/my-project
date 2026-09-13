@@ -1082,8 +1082,18 @@ const PUBLIC_STATE_SLUG="zuoyu";
 let supabaseClient=null;
 let cloudUser=null;
 let cloudSaveTimer=null;
+let cloudPublicRetryTimer=null;
 let cloudSyncing=false;
+let cloudSaveQueued=false;
 let suppressCloudSave=false;
+let knownSaveUpdatedAt=null;
+let knownPublicUpdatedAt=null;
+let pendingSaveUpdatedAt=null;
+let localStateRevision=0;
+let ownerStateChannel=null;
+let publicStateChannel=null;
+let cloudPollingTimer=null;
+let cloudLifecycleReady=false;
 const RANKS=["E","D","C","B","A","S","SS","SSS"];
 const RANK_THRESHOLDS={E:0,D:300,C:900,B:2200,A:5000,S:9000,SS:15000,SSS:25000};
 
@@ -1155,7 +1165,7 @@ function loadState(){
   return migrateState(clone(DEFAULT_STATE));
 }
 
-function migrateState(s){
+function migrateState(s,{persist=true}={}){
   s=s&&typeof s==="object"?s:{};
   s.exp=safeNum(s.exp,0);
   s.coins=safeNum(s.coins,0);
@@ -1212,14 +1222,16 @@ function migrateState(s){
     s.finalTask.conditionStatus=(s.finalTask.conditions||[]).map((_,i)=>Boolean(s.finalTask.conditionStatus[i]));
   }
 
-  localStorage.setItem(STORAGE_KEY,JSON.stringify(s));
+  if(persist)localStorage.setItem(STORAGE_KEY,JSON.stringify(s));
   return s;
 }
 
-let state=loadState();
+let state=IS_PREVIEW?migrateState(clone(DEFAULT_STATE),{persist:false}):loadState();
 
 function save(){
+  if(IS_PREVIEW)return;
   localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+  localStateRevision++;
   render();
   if(!suppressCloudSave)scheduleCloudSave();
 }
@@ -1294,46 +1306,198 @@ function scheduleCloudSave(){
   if(IS_PREVIEW||!cloudUser||!supabaseClient)return;
   clearTimeout(cloudSaveTimer);
   setCloudStatus("待同步","busy");
-  cloudSaveTimer=setTimeout(()=>pushCloudState(),650);
+  cloudSaveTimer=setTimeout(()=>pushCloudState(),180);
+}
+
+function cloudTime(value){
+  const time=Date.parse(value||"");
+  return Number.isFinite(time)?time:0;
+}
+
+async function fetchCloudRow(table,column,value){
+  const {data,error}=await supabaseClient
+    .from(table)
+    .select("state,updated_at")
+    .eq(column,value)
+    .maybeSingle();
+  if(error)throw error;
+  return data||null;
+}
+
+function applyRemoteState(row,{preview=false,force=false}={}){
+  if(!row?.state)return false;
+  // Realtime may echo our write before its HTTP response resolves.
+  if(!preview&&row.updated_at&&row.updated_at===pendingSaveUpdatedAt){
+    knownSaveUpdatedAt=row.updated_at;
+    return false;
+  }
+  const known=preview?knownPublicUpdatedAt:knownSaveUpdatedAt;
+  if(!force&&cloudTime(row.updated_at)<=cloudTime(known))return false;
+
+  if(preview)knownPublicUpdatedAt=row.updated_at||knownPublicUpdatedAt;
+  else{
+    knownSaveUpdatedAt=row.updated_at||knownSaveUpdatedAt;
+    clearTimeout(cloudSaveTimer);
+    cloudSaveQueued=false;
+  }
+
+  suppressCloudSave=true;
+  try{
+    state=migrateState(clone(row.state),{persist:!preview});
+    if(!preview)localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+    localStateRevision++;
+    render();
+    if(preview)applyPreviewMode();
+  }finally{
+    suppressCloudSave=false;
+  }
+  if(row.updated_at)setLastSync(new Date(row.updated_at));
+  return true;
+}
+
+async function publishPublicState(snapshot,updatedAt){
+  const current=await fetchCloudRow("public_state","slug",PUBLIC_STATE_SLUG);
+  if(current&&cloudTime(current.updated_at)>=cloudTime(updatedAt)){
+    knownPublicUpdatedAt=current.updated_at||knownPublicUpdatedAt;
+    return;
+  }
+
+  let result;
+  const payload={
+    slug:PUBLIC_STATE_SLUG,
+    owner_id:cloudUser.id,
+    state:snapshot,
+    updated_at:updatedAt
+  };
+  if(current){
+    result=await supabaseClient
+      .from("public_state")
+      .update(payload)
+      .eq("slug",PUBLIC_STATE_SLUG)
+      .eq("updated_at",current.updated_at)
+      .select("state,updated_at")
+      .maybeSingle();
+  }else{
+    result=await supabaseClient
+      .from("public_state")
+      .upsert(payload,{onConflict:"slug"})
+      .select("state,updated_at")
+      .maybeSingle();
+  }
+  if(result.error)throw result.error;
+  if(result.data?.updated_at)knownPublicUpdatedAt=result.data.updated_at;
+}
+
+function schedulePublicStateRetry(){
+  if(IS_PREVIEW||!cloudUser)return;
+  clearTimeout(cloudPublicRetryTimer);
+  cloudPublicRetryTimer=setTimeout(async()=>{
+    try{
+      const latest=await fetchCloudRow("life_saves","user_id",cloudUser.id);
+      if(latest?.state){
+        await publishPublicState(latest.state,latest.updated_at);
+        setCloudStatus("已同步","ok");
+      }
+    }catch(err){
+      console.error("Public state retry failed",err);
+      schedulePublicStateRetry();
+    }
+  },2500);
 }
 
 async function pushCloudState(){
-  if(IS_PREVIEW||!cloudUser||!supabaseClient||cloudSyncing)return;
+  if(IS_PREVIEW||!cloudUser||!supabaseClient)return false;
+  if(cloudSyncing){
+    cloudSaveQueued=true;
+    return false;
+  }
   cloudSyncing=true;
+  cloudSaveQueued=false;
   setCloudStatus("同步中","busy");
 
   const snapshot=clone(state);
-  const updatedAt=new Date().toISOString();
+  const revision=localStateRevision;
+  let remoteWon=false;
 
   try{
-    const saveResult=await supabaseClient
-      .from("life_saves")
-      .upsert({
+    const current=await fetchCloudRow("life_saves","user_id",cloudUser.id);
+    if(current&&(!knownSaveUpdatedAt||cloudTime(current.updated_at)>cloudTime(knownSaveUpdatedAt))){
+      remoteWon=applyRemoteState(current,{force:true});
+      setCloudStatus("已获取较新云存档","ok");
+      return false;
+    }
+
+    const updatedAt=new Date(Math.max(Date.now(),cloudTime(knownSaveUpdatedAt)+1)).toISOString();
+    pendingSaveUpdatedAt=updatedAt;
+    const payload={
         user_id:cloudUser.id,
         state:snapshot,
         updated_at:updatedAt
-      },{onConflict:"user_id"});
+    };
+    let saveResult;
+    if(current){
+      // Compare-and-set: another device winning this race makes this update affect zero rows.
+      saveResult=await supabaseClient
+        .from("life_saves")
+        .update(payload)
+        .eq("user_id",cloudUser.id)
+        .eq("updated_at",current.updated_at)
+        .select("state,updated_at")
+        .maybeSingle();
+    }else{
+      saveResult=await supabaseClient
+        .from("life_saves")
+        .upsert(payload,{onConflict:"user_id"})
+        .select("state,updated_at")
+        .maybeSingle();
+    }
 
     if(saveResult.error)throw saveResult.error;
+    if(!saveResult.data){
+      const winner=await fetchCloudRow("life_saves","user_id",cloudUser.id);
+      if(winner){
+        remoteWon=applyRemoteState(winner,{force:true});
+        setCloudStatus("已获取较新云存档","ok");
+      }
+      return false;
+    }
 
-    const publicResult=await supabaseClient
-      .from("public_state")
-      .upsert({
-        slug:PUBLIC_STATE_SLUG,
-        owner_id:cloudUser.id,
-        state:snapshot,
-        updated_at:updatedAt
-      },{onConflict:"slug"});
-
-    if(publicResult.error)throw publicResult.error;
+    knownSaveUpdatedAt=saveResult.data.updated_at||updatedAt;
+    try{
+      await publishPublicState(snapshot,knownSaveUpdatedAt);
+    }catch(publicError){
+      console.error("Public state sync failed",publicError);
+      setCloudStatus("存档已同步 · 公开状态待重试","busy");
+      schedulePublicStateRetry();
+      return true;
+    }
 
     setCloudStatus("已同步","ok");
-    setLastSync(new Date(updatedAt));
+    setLastSync(new Date(knownSaveUpdatedAt));
+    return true;
   }catch(err){
     console.error("Cloud sync failed",err);
     setCloudStatus("同步失败","error");
+    return false;
   }finally{
+    pendingSaveUpdatedAt=null;
     cloudSyncing=false;
+    if(!remoteWon&&(cloudSaveQueued||localStateRevision>revision))scheduleCloudSave();
+  }
+}
+
+async function pullCloudState({force=false}={}){
+  if(IS_PREVIEW||!cloudUser||!supabaseClient)return false;
+  try{
+    const row=await fetchCloudRow("life_saves","user_id",cloudUser.id);
+    if(!row)return false;
+    const changed=applyRemoteState(row,{force});
+    if(changed)setCloudStatus("已同步","ok");
+    return changed;
+  }catch(err){
+    console.error("Cloud pull failed",err);
+    setCloudStatus("云端读取失败","error");
+    return false;
   }
 }
 
@@ -1342,25 +1506,16 @@ async function bootstrapCloudForUser(){
   setCloudStatus("读取云端","busy");
 
   try{
-    const {data,error}=await supabaseClient
-      .from("life_saves")
-      .select("state,updated_at")
-      .eq("user_id",cloudUser.id)
-      .maybeSingle();
-
-    if(error)throw error;
-
-    if(data&&data.state){
-      suppressCloudSave=true;
-      state=migrateState(data.state);
-      localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
-      render();
-      suppressCloudSave=false;
+    const data=await fetchCloudRow("life_saves","user_id",cloudUser.id);
+    if(data?.state){
+      applyRemoteState(data,{force:true});
       setCloudStatus("已同步","ok");
-      if(data.updated_at)setLastSync(new Date(data.updated_at));
-
-      // Ensure the friend-preview row exists and mirrors the cloud save.
-      await pushCloudState();
+      try{
+        await publishPublicState(state,data.updated_at);
+      }catch(publicError){
+        console.error("Public state bootstrap failed",publicError);
+        schedulePublicStateRetry();
+      }
     }else{
       // First login on the first device: upload the current local save.
       await pushCloudState();
@@ -1372,28 +1527,80 @@ async function bootstrapCloudForUser(){
   }
 }
 
-async function loadPublicPreview(){
+async function loadPublicPreview({force=false}={}){
   if(!IS_PREVIEW||!supabaseClient)return;
   try{
-    const {data,error}=await supabaseClient
-      .from("public_state")
-      .select("state,updated_at")
-      .eq("slug",PUBLIC_STATE_SLUG)
-      .maybeSingle();
-
-    if(error)throw error;
-    if(!data||!data.state)return;
-
-    suppressCloudSave=true;
-    state=migrateState(data.state);
-    localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
-    render();
-    applyPreviewMode();
-    suppressCloudSave=false;
+    const data=await fetchCloudRow("public_state","slug",PUBLIC_STATE_SLUG);
+    if(!data?.state)return false;
+    return applyRemoteState(data,{preview:true,force});
   }catch(err){
-    suppressCloudSave=false;
     console.error("Public preview load failed",err);
+    return false;
   }
+}
+
+function removeCloudChannel(channel){
+  if(!channel||!supabaseClient)return;
+  if(supabaseClient.removeChannel)supabaseClient.removeChannel(channel);
+  else channel.unsubscribe?.();
+}
+
+function subscribeOwnerState(){
+  removeCloudChannel(ownerStateChannel);
+  ownerStateChannel=null;
+  if(IS_PREVIEW||!cloudUser||!supabaseClient)return;
+  ownerStateChannel=supabaseClient
+    .channel("life-save-"+cloudUser.id)
+    .on("postgres_changes",{
+      event:"*",schema:"public",table:"life_saves",filter:"user_id=eq."+cloudUser.id
+    },payload=>{
+      if(payload.new?.state)applyRemoteState(payload.new);
+      else pullCloudState();
+    })
+    .subscribe(status=>{
+      if(["CHANNEL_ERROR","TIMED_OUT"].includes(status))pullCloudState();
+    });
+}
+
+function subscribePublicState(){
+  removeCloudChannel(publicStateChannel);
+  publicStateChannel=null;
+  if(!IS_PREVIEW||!supabaseClient)return;
+  publicStateChannel=supabaseClient
+    .channel("public-state-"+PUBLIC_STATE_SLUG)
+    .on("postgres_changes",{
+      event:"*",schema:"public",table:"public_state",filter:"slug=eq."+PUBLIC_STATE_SLUG
+    },payload=>{
+      if(payload.new?.state)applyRemoteState(payload.new,{preview:true});
+      else loadPublicPreview();
+    })
+    .subscribe(status=>{
+      if(["CHANNEL_ERROR","TIMED_OUT"].includes(status))loadPublicPreview();
+    });
+}
+
+function refreshCloudState(){
+  if(!supabaseClient)return;
+  if(IS_PREVIEW)loadPublicPreview();
+  else if(cloudUser)pullCloudState();
+}
+
+function setupCloudLifecycle(){
+  if(cloudLifecycleReady)return;
+  cloudLifecycleReady=true;
+  cloudPollingTimer=setInterval(refreshCloudState,4000);
+  document.addEventListener("visibilitychange",()=>{
+    if(!document.hidden){
+      if(IS_PREVIEW&& !publicStateChannel)subscribePublicState();
+      if(!IS_PREVIEW&&cloudUser&&!ownerStateChannel)subscribeOwnerState();
+      refreshCloudState();
+    }
+  });
+  window.addEventListener("online",()=>{
+    if(IS_PREVIEW)subscribePublicState();
+    else if(cloudUser)subscribeOwnerState();
+    refreshCloudState();
+  });
 }
 
 async function cloudLogin(){
@@ -1418,12 +1625,18 @@ async function cloudLogin(){
   updateCloudUI();
   toast("云存档已登录");
   await bootstrapCloudForUser();
+  subscribeOwnerState();
 }
 
 async function cloudLogout(){
   if(!supabaseClient)return;
+  removeCloudChannel(ownerStateChannel);
+  ownerStateChannel=null;
+  clearTimeout(cloudSaveTimer);
+  clearTimeout(cloudPublicRetryTimer);
   await supabaseClient.auth.signOut();
   cloudUser=null;
+  knownSaveUpdatedAt=null;
   updateCloudUI();
   setCloudStatus("未登录","muted");
   toast("已退出云存档");
@@ -1458,7 +1671,9 @@ async function initCloud(){
 
   if(IS_PREVIEW){
     updateCloudUI();
-    await loadPublicPreview();
+    setupCloudLifecycle();
+    await loadPublicPreview({force:true});
+    subscribePublicState();
     return;
   }
 
@@ -1477,9 +1692,12 @@ async function initCloud(){
 
   if(cloudUser){
     await bootstrapCloudForUser();
+    subscribeOwnerState();
   }else{
     setCloudStatus("未登录 · 本地存档","muted");
   }
+
+  setupCloudLifecycle();
 
   supabaseClient.auth.onAuthStateChange((event,session)=>{
     const nextUser=session?.user||null;
@@ -1488,9 +1706,15 @@ async function initCloud(){
     updateCloudUI();
 
     if(event==="SIGNED_OUT"){
+      removeCloudChannel(ownerStateChannel);
+      ownerStateChannel=null;
+      knownSaveUpdatedAt=null;
       setCloudStatus("未登录 · 本地存档","muted");
     }else if(event==="SIGNED_IN"&&cloudUser&&changed){
-      setTimeout(()=>bootstrapCloudForUser(),0);
+      setTimeout(async()=>{
+        await bootstrapCloudForUser();
+        subscribeOwnerState();
+      },0);
     }
   });
 }
@@ -1957,14 +2181,21 @@ function render(){
 }
 
 /* ---------- Task system ---------- */
-function selectRank(r){state.selectedRank=r;save()}
+function selectRank(r){
+  if(!RANKS.includes(r))return;
+  state.selectedRank=r;
+  if(IS_PREVIEW){renderTasks();applyPreviewMode();return}
+  save();
+}
 function acceptTask(id){
+  if(IS_PREVIEW)return;
   if(!state.activeTasks.includes(id)){
     state.activeTasks.push(id);
     save();
   }
 }
 function completeTask(id){
+  if(IS_PREVIEW)return;
   const t=state.tasks.find(x=>x.id===id);
   if(!t)return;
 
@@ -1986,9 +2217,8 @@ function completeTask(id){
   state.activeTasks=state.activeTasks.filter(taskId=>taskId!==id);
   state.tasks=state.tasks.filter(x=>x.id!==id);
   
-  localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
   showReward(t);
-  render();
+  save();
 }
 
 function showReward(t){
@@ -2004,6 +2234,7 @@ function closeReward(){
 }
 
 function createTask(){
+  if(IS_PREVIEW)return;
   const title=document.getElementById("taskName").value.trim();
   if(!title)return toast("先写任务名称");
   const task={
@@ -2027,10 +2258,12 @@ function createTask(){
   toast("任务已加入");
 }
 function deleteTask(id){
+  if(IS_PREVIEW)return;
   state.tasks=state.tasks.filter(t=>t.id!==id);
   save();toast("已删除任务");
 }
 function buyItem(i){
+  if(IS_PREVIEW)return;
   const x=state.shop[i];if(!x)return;
   if(state.coins<safeNum(x.cost))return toast("金币不够");
   state.coins-=safeNum(x.cost);save();toast("已兑换："+x.name);
@@ -2086,6 +2319,7 @@ async function copyTaskCode(id){
   catch(e){prompt("复制下面的任务码：",code)}
 }
 function importTaskCode(){
+  if(IS_PREVIEW)return;
   try{
     const task=normalizeTask(decodeTaskCode(document.getElementById("taskCodeInput").value));
     const dup=state.tasks.some(t=>t.title===task.title&&t.rank===task.rank&&safeNum(t.exp)===safeNum(task.exp)&&String(t.desc||"")===String(task.desc||""));
@@ -2113,6 +2347,7 @@ function toggleFinalCondition(index){
 }
 
 function completeFinalTask(){
+  if(IS_PREVIEW)return;
   const f=state.finalTask;
   if(!f||f.completed)return;
   const allDone=Array.isArray(f.conditionStatus)
@@ -2154,6 +2389,7 @@ function exportSave(){
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 function importSave(e){
+  if(IS_PREVIEW)return;
   const f=e.target.files[0];if(!f)return;
   const r=new FileReader();
   r.onload=()=>{
@@ -2165,6 +2401,7 @@ function importSave(e){
   r.readAsText(f);
 }
 function resetAll(){
+  if(IS_PREVIEW)return;
   if(!confirm("确定重置系统？\n\n自定义任务与当前进度会清空，但已发生的日本真实历史战绩会在迁移后重新计入。"))return;
   localStorage.removeItem(STORAGE_KEY);
   state=migrateState(clone(DEFAULT_STATE));
