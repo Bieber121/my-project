@@ -122,6 +122,9 @@ async function stateOf(page) { return page.evaluate(() => JSON.parse(JSON.string
 async function waitState(page, predicateSource, label, timeout) {
   return waitFor(page, new Function(`return (${predicateSource})(state)`), label, timeout);
 }
+async function waitArchiveClosed(page) {
+  await page.waitForFunction(() => !document.querySelector('#archiveModal').classList.contains('open'));
+}
 
 async function run() {
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
@@ -151,6 +154,67 @@ async function run() {
     assert.deepEqual(await stateOf(mobile), initial, 'owner startup reads life_saves');
     assert.deepEqual(await stateOf(friend), initial, 'preview startup reads public_state');
     assert.equal(await friend.evaluate(() => localStorage.getItem(STORAGE_KEY)), null, 'preview does not write owner local cache');
+
+    // Legacy arrays migrate losslessly into metadata records with historical fallbacks.
+    const legacyMigration = await computer.evaluate(() => {
+      const legacy = clone(state);
+      legacy.titles.push('历史称号');
+      legacy.regions.push('历史区域');
+      delete legacy.titleRecords;
+      delete legacy.regionRecords;
+      const migrated = migrateState(legacy, { persist: false });
+      return {
+        titles: migrated.titles,
+        regions: migrated.regions,
+        oldTitle: migrated.titleRecords.find(x => x.title === '历史称号'),
+        oldRegion: migrated.regionRecords.find(x => x.name === '历史区域'),
+        japan: migrated.regionRecords.find(x => x.name === '日本')
+      };
+    });
+    assert(legacyMigration.titles.includes('历史称号'));
+    assert(legacyMigration.regions.includes('历史区域'));
+    assert.equal(legacyMigration.oldTitle.source, '历史解锁');
+    assert.equal(legacyMigration.oldTitle.unlockedAt, null);
+    assert.equal(legacyMigration.oldRegion.source, '历史解锁');
+    assert.equal(legacyMigration.japan.source, '七日海外独立远征（日本）');
+
+    // Interactive stats are native keyboard buttons; title switching renders and syncs immediately.
+    const titleEntry = computer.locator('button[onclick="openArchiveModal(\'titles\')"]');
+    await titleEntry.hover();
+    assert.equal(await titleEntry.evaluate(el => getComputedStyle(el).cursor), 'pointer');
+    await titleEntry.focus();
+    await titleEntry.press('Enter');
+    await computer.waitForSelector('#archiveModal.open');
+    assert.equal(await computer.locator('#archiveTitle').textContent(), '已解锁称号');
+    assert.equal(await computer.locator('.title-card.current').count(), 1);
+    await computer.locator('button.title-card', { hasText: '新手旅人' }).click();
+    assert.equal((await computer.locator('#heroTitle').textContent()).trim(), '新手旅人');
+    await waitState(mobile, 's => s.currentTitle === "新手旅人"', 'title switch reaches mobile owner');
+    await waitState(friend, 's => s.currentTitle === "新手旅人"', 'title switch reaches preview');
+    await computer.keyboard.press('Escape');
+    await waitArchiveClosed(computer);
+    assert(!(await computer.evaluate(() => document.body.classList.contains('modal-open'))));
+
+    // Preview can inspect title metadata but receives no equip controls.
+    await friend.locator('button[onclick="openArchiveModal(\'titles\')"]').click();
+    assert.equal(await friend.locator('#archiveTitle').textContent(), '已解锁称号');
+    assert.equal(await friend.locator('button.title-card').count(), 0);
+    assert.equal(await friend.locator('.title-card.current').count(), 1);
+    await friend.locator('#archiveModal .close-btn').click();
+    await waitArchiveClosed(friend);
+
+    // Mobile uses a bottom sheet, and region history includes its inferred source.
+    await mobile.locator('button[onclick="openArchiveModal(\'regions\')"]').click();
+    await mobile.waitForTimeout(450);
+    const mobileSheet = await mobile.locator('.archive-sheet').evaluate(el => {
+      const rect = el.getBoundingClientRect();
+      return { bottom: rect.bottom, viewport: innerHeight, width: rect.width, screen: innerWidth };
+    });
+    assert(Math.abs(mobileSheet.bottom - mobileSheet.viewport) < 1);
+    assert(mobileSheet.width <= mobileSheet.screen);
+    assert((await mobile.locator('.region-card', { hasText: '日本' }).textContent()).includes('七日海外独立远征（日本）'));
+    await mobile.locator('#archiveModal .close-btn').click();
+    await waitArchiveClosed(mobile);
 
     // A + C: computer accepts, mobile owner and friend update via Realtime without refresh.
     await computer.evaluate(() => acceptTask('e1'));
@@ -186,20 +250,66 @@ async function run() {
       waitState(stale, 's => s.activeTasks.includes("e2")', 'fallback polling updates owner', 6000)
     ]);
 
-    // New/delete task, FINAL condition and coin exchange all use the same save pipeline.
+    // New title/region unlock metadata, deletion, FINAL condition and coin exchange use the same save pipeline.
     await computer.evaluate(() => {
-      document.querySelector('#taskName').value = '同步测试任务';
+      document.querySelector('#taskName').value = '称号解锁任务';
       document.querySelector('#taskRank').value = 'E';
       document.querySelector('#taskExp').value = '10';
       document.querySelector('#taskCoins').value = '5';
       document.querySelector('#taskAttr').value = '探索';
       document.querySelector('#taskGain').value = '1';
+      document.querySelector('#taskTitleReward').value = '同步勇者';
       createTask();
     });
-    await waitState(friend, 's => s.tasks.some(x => x.title === "同步测试任务")', 'friend receives created task');
-    const customId = database.life_saves.state.tasks.find(x => x.title === '同步测试任务').id;
+    await waitState(friend, 's => s.tasks.some(x => x.title === "称号解锁任务")', 'friend receives created title task');
+    const titleTaskId = database.life_saves.state.tasks.find(x => x.title === '称号解锁任务').id;
+    await computer.evaluate(id => { acceptTask(id); completeTask(id); }, titleTaskId);
+    await computer.evaluate(() => closeReward());
+    await waitState(friend, 's => s.currentTitle === "同步勇者" && s.titleRecords.some(x => x.title === "同步勇者")', 'friend receives title metadata');
+    await waitState(mobile, 's => s.currentTitle === "同步勇者"', 'new equipped title reaches mobile');
+    const newTitleRecord = database.life_saves.state.titleRecords.find(x => x.title === '同步勇者');
+    assert.equal(newTitleRecord.source, '称号解锁任务');
+    assert(Number.isFinite(Date.parse(newTitleRecord.unlockedAt)));
+    assert(newTitleRecord.equipped);
+
+    await computer.evaluate(() => {
+      document.querySelector('#taskCodeInput').value = JSON.stringify({ title: '区域解锁任务', rank: 'A', exp: 20, coins: 10, attr: '探索', gain: 1, regionReward: '测试区域' });
+      importTaskCode();
+    });
+    await waitState(friend, 's => s.tasks.some(x => x.title === "区域解锁任务")', 'friend receives imported region task');
+    const regionTaskId = database.life_saves.state.tasks.find(x => x.title === '区域解锁任务').id;
+    await computer.evaluate(id => { acceptTask(id); completeTask(id); }, regionTaskId);
+    await computer.evaluate(() => closeReward());
+    await waitState(friend, 's => s.regionRecords.some(x => x.name === "测试区域")', 'friend receives region metadata');
+    const newRegionRecord = database.life_saves.state.regionRecords.find(x => x.name === '测试区域');
+    assert.equal(newRegionRecord.source, '区域解锁任务');
+    assert(Number.isFinite(Date.parse(newRegionRecord.unlockedAt)));
+
+    await computer.evaluate(() => {
+      document.querySelector('#taskName').value = '同步删除任务';
+      document.querySelector('#taskTitleReward').value = '';
+      createTask();
+    });
+    await waitState(friend, 's => s.tasks.some(x => x.title === "同步删除任务")', 'friend receives deletable task');
+    const customId = database.life_saves.state.tasks.find(x => x.title === '同步删除任务').id;
     await computer.evaluate(id => deleteTask(id), customId);
-    await waitState(mobile, 's => !s.tasks.some(x => x.title === "同步测试任务")', 'mobile receives deleted task');
+    await waitState(mobile, 's => !s.tasks.some(x => x.title === "同步删除任务")', 'mobile receives deleted task');
+
+    await computer.locator('button[onclick="openArchiveModal(\'regions\')"]').click();
+    const regionCardText = await computer.locator('.region-card', { hasText: '测试区域' }).textContent();
+    assert(regionCardText.includes('区域解锁任务'));
+    assert(!regionCardText.includes('历史解锁'));
+    await computer.locator('#archiveModal').click({ position: { x: 5, y: 5 } });
+    await waitArchiveClosed(computer);
+
+    await computer.locator('button[onclick="openArchiveModal(\'records\')"]').click();
+    assert.equal((await computer.locator('.record-card').first().locator('.archive-card-name').textContent()).trim(), '区域解锁任务');
+    await computer.locator('[data-record-filter="high"]').click();
+    assert(await computer.locator('.record-card.high').count() >= 1);
+    assert.equal(await computer.locator('.record-card.normal').count(), 0);
+    await computer.locator('#archiveModal .close-btn').click();
+    await waitArchiveClosed(computer);
+
     await computer.evaluate(() => toggleFinalCondition(0));
     await waitState(friend, 's => s.finalTask.conditionStatus[0] === true', 'friend receives FINAL condition');
     await computer.evaluate(() => { state.coins = 5000; save(); });
@@ -235,6 +345,12 @@ async function run() {
     });
     await waitState(computer, 's => s.finalTask.completed && s.completed.some(x => x.rank === "FINAL")', 'computer receives FINAL completion');
     await waitState(friend, 's => s.finalTask.completed && s.completed.some(x => x.rank === "FINAL")', 'friend receives FINAL completion');
+    await friend.locator('button[onclick="openArchiveModal(\'records\')"]').click();
+    await friend.locator('[data-record-filter="final"]').click();
+    assert.equal(await friend.locator('.record-card.final').count(), 1);
+    assert((await friend.locator('.record-card.final').textContent()).includes('FINAL'));
+    await friend.locator('#archiveModal .close-btn').click();
+    await waitArchiveClosed(friend);
 
     // visibilitychange and online each perform an explicit catch-up pull.
     database.life_saves.state.selectedRank = 'SS';

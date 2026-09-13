@@ -195,6 +195,23 @@ body.modal-open{overflow:hidden}
 .stat-card{padding:28px}
 .stat-card .value{font-size:38px;font-weight:780;letter-spacing:-.05em;margin-top:8px}
 .stat-card .meta{font-size:12px;color:var(--muted);margin-top:6px}
+.stat-card-button{
+  width:100%;border:1px solid transparent;text-align:left;color:inherit;font:inherit;
+  position:relative;cursor:pointer;appearance:none;-webkit-appearance:none;
+  transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease,background .22s ease
+}
+.stat-card-button::after{
+  content:"↗";position:absolute;right:20px;top:18px;width:28px;height:28px;
+  display:grid;place-items:center;border-radius:50%;background:#f2f2f4;color:#74747a;
+  font-size:14px;transition:transform .22s ease,background .22s ease,color .22s ease
+}
+.stat-card-button:hover{
+  transform:translateY(-3px);border-color:rgba(0,113,227,.16);
+  box-shadow:0 20px 55px rgba(0,0,0,.12);background:#fff
+}
+.stat-card-button:hover::after{transform:translate(1px,-1px);background:#eaf4ff;color:var(--blue)}
+.stat-card-button:active{transform:translateY(-1px) scale(.985)}
+.stat-card-button:focus-visible{outline:3px solid rgba(0,113,227,.28);outline-offset:3px}
 
 /* ---------- Main quest ---------- */
 .quest-showcase{
@@ -593,6 +610,70 @@ textarea{min-height:108px;resize:vertical}
 .sheet-note{font-size:13px;color:var(--muted);line-height:1.55;margin:10px 0 0}
 .sheet-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
 
+/* ---------- Progress archive ---------- */
+.archive-modal{align-items:center;padding:22px;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+.archive-sheet{
+  width:min(100%,780px);max-height:min(84svh,820px);padding:0;overflow:hidden;
+  display:flex;flex-direction:column;border:1px solid rgba(0,0,0,.05)
+}
+.archive-head{padding:26px 28px 18px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.94)}
+.archive-head .sheet-top{align-items:flex-start}
+.archive-eyebrow{margin-bottom:7px;color:var(--blue);font-size:10px;font-weight:800;letter-spacing:.17em}
+.archive-intro{margin:9px 44px 0 0;color:var(--muted);font-size:13px;line-height:1.5}
+.archive-filters{display:flex;gap:7px;overflow-x:auto;padding:14px 28px 0;scrollbar-width:none}
+.archive-filters:empty{display:none}
+.archive-filters::-webkit-scrollbar{display:none}
+.archive-filter{
+  flex:0 0 auto;border:0;border-radius:999px;padding:8px 13px;background:#f2f2f4;
+  color:#6e6e73;font-size:12px;font-weight:700;transition:background .2s,color .2s,transform .2s
+}
+.archive-filter:hover{background:#e8e8eb}.archive-filter:active{transform:scale(.96)}
+.archive-filter.active{background:#1d1d1f;color:#fff}
+.archive-body{padding:18px 28px 30px;overflow-y:auto;overscroll-behavior:contain}
+.archive-list{display:grid;gap:10px}
+.unlock-card,.record-card{
+  border:1px solid rgba(0,0,0,.07);border-radius:20px;padding:17px 18px;
+  background:linear-gradient(180deg,#fff,#fafafa);box-shadow:0 8px 28px rgba(0,0,0,.045)
+}
+.title-card{width:100%;text-align:left;color:inherit;font:inherit;appearance:none}
+button.title-card{cursor:pointer;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+button.title-card:hover{transform:translateY(-2px);border-color:rgba(0,113,227,.22);box-shadow:0 13px 34px rgba(0,0,0,.08)}
+button.title-card:active{transform:scale(.99)}
+button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-offset:2px}
+.title-card.current{border-color:rgba(0,113,227,.28);background:linear-gradient(145deg,#f2f8ff,#fff 64%)}
+.title-card.rare{border-color:rgba(196,154,67,.26);background:linear-gradient(145deg,#fffaf0,#fff 66%)}
+.title-card.current.rare{box-shadow:inset 0 0 0 1px rgba(196,154,67,.12),0 10px 32px rgba(164,118,29,.07)}
+.archive-card-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.archive-card-name{font-size:17px;font-weight:760;letter-spacing:-.025em}
+.archive-status,.rank-badge{
+  flex:0 0 auto;border-radius:999px;padding:5px 9px;background:#f0f0f2;
+  color:#6e6e73;font-size:10px;font-weight:800;letter-spacing:.04em
+}
+.title-card.current .archive-status{background:#0071e3;color:#fff}
+.region-card .archive-status{background:#eaf7ed;color:#248a3d}
+.archive-card-meta{display:grid;gap:5px;margin-top:12px;color:#77777c;font-size:12px;line-height:1.45}
+.archive-card-meta b{color:#4f4f54;font-weight:700}
+.record-card{position:relative;overflow:hidden}
+.record-card::before{content:"";position:absolute;left:0;top:15px;bottom:15px;width:3px;border-radius:0 4px 4px 0;background:#d8d8dc}
+.record-card.high::before{background:linear-gradient(#72aef7,#6e5ee8)}
+.record-card.final{
+  color:#fff;border-color:rgba(226,188,96,.24);
+  background:linear-gradient(145deg,#17130b,#080808 72%);box-shadow:0 14px 38px rgba(0,0,0,.14)
+}
+.record-card.final::before{background:linear-gradient(#f2d58a,#b98732);box-shadow:0 0 14px rgba(226,188,96,.4)}
+.record-card.final .archive-card-name{color:#f4dfaa}
+.record-card.final .archive-card-meta,.record-card.final .record-rewards{color:#a9a7a2}
+.record-card.final .archive-card-meta b{color:#d3c499}
+.record-card.final .rank-badge{background:rgba(226,188,96,.15);color:#edcf87}
+.record-card.high .rank-badge{background:#eef3ff;color:#4e5dc9}
+.record-rewards{margin-top:12px;color:#55555a;font-size:13px;line-height:1.55}
+.record-unlocks{margin-top:10px;color:#9a6b13;font-size:12px;font-weight:700;line-height:1.5}
+.empty-archive{padding:54px 20px;text-align:center;color:#8e8e93;font-size:14px}
+.archive-modal.closing{display:flex;animation:archive-backdrop-out .2s ease both}
+.archive-modal.closing .archive-sheet{animation:archive-sheet-out .2s ease both}
+@keyframes archive-backdrop-out{to{opacity:0}}
+@keyframes archive-sheet-out{to{opacity:0;transform:translateY(12px) scale(.985)}}
+
 /* ---------- Reward Overlay ---------- */
 .reward-overlay{
   position:fixed;inset:0;z-index:150;display:none;
@@ -666,6 +747,16 @@ textarea{min-height:108px;resize:vertical}
 }
 @media (max-width:620px){
   .section{padding:88px 16px}
+  .stat-card{min-height:128px;padding:24px 20px}
+  .stat-card-button::after{right:14px;top:14px}
+  .archive-modal{align-items:flex-end;padding:0;background:rgba(0,0,0,.48)}
+  .archive-sheet{width:100%;max-height:88svh;border-radius:28px 28px 0 0;border-bottom:0}
+  .archive-head{padding:22px 20px 16px}
+  .archive-head .sheet-top{align-items:center}
+  .archive-intro{margin-right:0}
+  .archive-filters{padding:12px 20px 0}
+  .archive-body{padding:16px 16px calc(24px + var(--safe-bottom))}
+  .unlock-card,.record-card{padding:16px}
   .japan-photo-card{min-height:520px}
   .japan-photo-copy{padding:28px}
   .japan-photo-copy h3{font-size:38px}
@@ -761,21 +852,21 @@ textarea{min-height:108px;resize:vertical}
           <div class="value" id="coinValue">0</div>
           <div class="meta">现实奖励货币</div>
         </div>
-        <div class="panel stat-card reveal reveal-delay-1">
+        <button type="button" class="panel stat-card stat-card-button reveal reveal-delay-1" onclick="openArchiveModal('records')" aria-haspopup="dialog" aria-controls="archiveModal">
           <div class="panel-label">战绩</div>
           <div class="value" id="recordValue">0</div>
           <div class="meta">已完成任务</div>
-        </div>
-        <div class="panel stat-card reveal reveal-delay-2">
+        </button>
+        <button type="button" class="panel stat-card stat-card-button reveal reveal-delay-2" onclick="openArchiveModal('titles')" aria-haspopup="dialog" aria-controls="archiveModal">
           <div class="panel-label">称号</div>
           <div class="value" id="titleValue">1</div>
           <div class="meta">已解锁</div>
-        </div>
-        <div class="panel stat-card reveal reveal-delay-2">
+        </button>
+        <button type="button" class="panel stat-card stat-card-button reveal reveal-delay-2" onclick="openArchiveModal('regions')" aria-haspopup="dialog" aria-controls="archiveModal">
           <div class="panel-label">区域</div>
           <div class="value" id="regionValue">0</div>
           <div class="meta">已解锁</div>
-        </div>
+        </button>
       </div>
     </div>
   </div>
@@ -1060,6 +1151,23 @@ textarea{min-height:108px;resize:vertical}
   </div>
 </div>
 
+<div class="modal archive-modal" id="archiveModal" aria-hidden="true">
+  <div class="sheet archive-sheet" role="dialog" aria-modal="true" aria-labelledby="archiveTitle" tabindex="-1">
+    <div class="archive-head">
+      <div class="sheet-top">
+        <div>
+          <div class="archive-eyebrow" id="archiveEyebrow">LIFE ARCHIVE</div>
+          <h3 id="archiveTitle">人生档案</h3>
+        </div>
+        <button type="button" class="close-btn" onclick="closeArchiveModal()" aria-label="关闭档案弹层">×</button>
+      </div>
+      <p class="archive-intro" id="archiveIntro"></p>
+      <div class="archive-filters" id="archiveFilters" aria-label="战绩筛选"></div>
+    </div>
+    <div class="archive-body" id="archiveBody"></div>
+  </div>
+</div>
+
 <div class="reward-overlay" id="rewardOverlay">
   <div class="reward-box">
     <div class="reward-check">✓</div>
@@ -1118,8 +1226,10 @@ const DEFAULT_STATE={
   exp:0,
   coins:0,
   titles:["新手旅人"],
+  titleRecords:[{title:"新手旅人",unlockedAt:null,source:"初始称号",equipped:true}],
   currentTitle:"新手旅人",
   regions:[],
+  regionRecords:[],
   chapters:["现实世界篇"],
   selectedRank:"E",
   tasks:BASE_TASKS,
@@ -1168,6 +1278,45 @@ function loadState(){
     if(raw) return migrateState(JSON.parse(raw));
   }catch(e){}
   return migrateState(clone(DEFAULT_STATE));
+}
+
+function uniqueTextValues(values){
+  return [...new Set((Array.isArray(values)?values:[]).map(value=>String(value||"").trim()).filter(Boolean))];
+}
+
+function reconcileUnlockRecords(s){
+  const completed=Array.isArray(s.completed)?s.completed:[];
+  const oldTitles=Array.isArray(s.titleRecords)?s.titleRecords.filter(Boolean):[];
+  const oldRegions=Array.isArray(s.regionRecords)?s.regionRecords.filter(Boolean):[];
+
+  s.titles=uniqueTextValues([...s.titles,...oldTitles.map(record=>record.title)]);
+  if(!s.titles.length)s.titles=["新手旅人"];
+  if(!s.currentTitle||!s.titles.includes(s.currentTitle))s.currentTitle=s.titles[s.titles.length-1];
+  s.titleRecords=s.titles.map(title=>{
+    const existing=oldTitles.find(record=>String(record.title||"")===title)||{};
+    const achievement=[...completed].reverse().find(record=>
+      record?.titleReward===title||String(record?.rewards||"").includes(`称号「${title}」`)
+    );
+    return{
+      title,
+      unlockedAt:existing.unlockedAt||achievement?.completedAt||achievement?.date||null,
+      source:existing.source||achievement?.title||(title==="新手旅人"?"初始称号":"历史解锁"),
+      equipped:title===s.currentTitle
+    };
+  });
+
+  s.regions=uniqueTextValues([...s.regions,...oldRegions.map(record=>record.name)]);
+  s.regionRecords=s.regions.map(name=>{
+    const existing=oldRegions.find(record=>String(record.name||"")===name)||{};
+    const achievement=[...completed].reverse().find(record=>
+      record?.regionReward===name||String(record?.rewards||"").includes(`区域「${name}」`)
+    );
+    return{
+      name,
+      unlockedAt:existing.unlockedAt||achievement?.completedAt||achievement?.date||null,
+      source:existing.source||achievement?.title||"历史解锁"
+    };
+  });
 }
 
 function migrateState(s,{persist=true}={}){
@@ -1227,11 +1376,45 @@ function migrateState(s,{persist=true}={}){
     s.finalTask.conditionStatus=(s.finalTask.conditions||[]).map((_,i)=>Boolean(s.finalTask.conditionStatus[i]));
   }
 
+  reconcileUnlockRecords(s);
+
   if(persist)localStorage.setItem(STORAGE_KEY,JSON.stringify(s));
   return s;
 }
 
 let state=IS_PREVIEW?migrateState(clone(DEFAULT_STATE),{persist:false}):loadState();
+
+function unlockTitle(title,source,unlockedAt){
+  title=String(title||"").trim();
+  if(!title)return;
+  const newlyUnlocked=!state.titles.includes(title);
+  if(newlyUnlocked)state.titles.push(title);
+  let record=state.titleRecords.find(item=>item.title===title);
+  if(!record){
+    record={title,unlockedAt:unlockedAt||new Date().toISOString(),source:source||"任务奖励",equipped:false};
+    state.titleRecords.push(record);
+  }else if(newlyUnlocked){
+    if(!record.unlockedAt&&unlockedAt)record.unlockedAt=unlockedAt;
+    if((!record.source||record.source==="历史解锁")&&source)record.source=source;
+  }
+  state.currentTitle=title;
+  state.titleRecords.forEach(item=>item.equipped=item.title===title);
+}
+
+function unlockRegion(name,source,unlockedAt){
+  name=String(name||"").trim();
+  if(!name)return;
+  const newlyUnlocked=!state.regions.includes(name);
+  if(newlyUnlocked)state.regions.push(name);
+  let record=state.regionRecords.find(item=>item.name===name);
+  if(!record){
+    record={name,unlockedAt:unlockedAt||new Date().toISOString(),source:source||"任务奖励"};
+    state.regionRecords.push(record);
+  }else if(newlyUnlocked){
+    if(!record.unlockedAt&&unlockedAt)record.unlockedAt=unlockedAt;
+    if((!record.source||record.source==="历史解锁")&&source)record.source=source;
+  }
+}
 
 function save(){
   if(IS_PREVIEW)return;
@@ -2109,6 +2292,131 @@ function renderTimeline(){
   }).join("");
 }
 
+let archiveView="records";
+let archiveRecordFilter="all";
+let archiveLastFocus=null;
+let archiveCloseTimer=null;
+
+function formatUnlockDate(value){
+  if(!value)return"历史解锁";
+  const text=String(value);
+  if(/^\d{4}-\d{2}$/.test(text))return text.slice(0,4)+"年"+text.slice(5)+"月";
+  const time=Date.parse(text);
+  return Number.isFinite(time)?new Date(time).toLocaleDateString("zh-CN"):text;
+}
+
+function recordCategory(rank){
+  rank=String(rank||"").toUpperCase();
+  if(rank==="FINAL")return"final";
+  if(["A","S","SS","SSS"].includes(rank))return"high";
+  return"normal";
+}
+
+function recordUnlockSummary(record){
+  const unlocks=[];
+  if(record.titleReward)unlocks.push(`称号「${record.titleReward}」`);
+  if(record.regionReward)unlocks.push(`区域「${record.regionReward}」`);
+  if(!unlocks.length){
+    String(record.rewards||"").split(" · ").forEach(part=>{
+      if(part.includes("解锁")&&!unlocks.includes(part.replace(/^解锁/,"")))unlocks.push(part.replace(/^解锁/,""));
+    });
+  }
+  return unlocks;
+}
+
+function renderArchiveContent(){
+  const modal=document.getElementById("archiveModal");
+  if(!modal)return;
+  const title=document.getElementById("archiveTitle");
+  const eyebrow=document.getElementById("archiveEyebrow");
+  const intro=document.getElementById("archiveIntro");
+  const filters=document.getElementById("archiveFilters");
+  const body=document.getElementById("archiveBody");
+
+  if(archiveView==="titles"){
+    eyebrow.textContent="TITLE COLLECTION";
+    title.textContent="已解锁称号";
+    intro.textContent=IS_PREVIEW?"查看称号的获得时间与解锁来源":"选择任意已解锁称号即可切换当前使用称号";
+    filters.innerHTML="";
+    if(!state.titleRecords.length){
+      body.innerHTML=`<div class="empty-archive">暂无已解锁称号</div>`;
+      return;
+    }
+    body.innerHTML=`<div class="archive-list">${state.titleRecords.map((record,index)=>{
+      const current=record.title===state.currentTitle;
+      const rare=record.source===state.finalTask?.title||/(自由|独行|终局|传奇)/.test(record.title);
+      const classes=`unlock-card title-card${current?" current":""}${rare?" rare":""}`;
+      const content=`
+        <div class="archive-card-top">
+          <div class="archive-card-name">${escapeHtml(record.title)}</div>
+          <span class="archive-status">${current?"当前使用":"已解锁"}</span>
+        </div>
+        <div class="archive-card-meta">
+          <span><b>获得日期</b> · ${escapeHtml(formatUnlockDate(record.unlockedAt))}</span>
+          <span><b>解锁来源</b> · ${escapeHtml(record.source||"历史解锁")}</span>
+        </div>`;
+      return IS_PREVIEW
+        ?`<div class="${classes}">${content}</div>`
+        :`<button type="button" class="${classes}" data-title-index="${index}" ${current?'aria-current="true"':''}>${content}</button>`;
+    }).join("")}</div>`;
+    return;
+  }
+
+  if(archiveView==="regions"){
+    eyebrow.textContent="REGION ARCHIVE";
+    title.textContent="已解锁区域";
+    intro.textContent="每一个区域都来自真实走过的路";
+    filters.innerHTML="";
+    if(!state.regionRecords.length){
+      body.innerHTML=`<div class="empty-archive">暂无已解锁区域</div>`;
+      return;
+    }
+    body.innerHTML=`<div class="archive-list">${state.regionRecords.map(record=>`
+      <article class="unlock-card region-card">
+        <div class="archive-card-top">
+          <div class="archive-card-name">${escapeHtml(record.name)}</div>
+          <span class="archive-status">已解锁</span>
+        </div>
+        <div class="archive-card-meta">
+          <span><b>解锁来源</b> · ${escapeHtml(record.source||"历史解锁")}</span>
+          <span><b>解锁时间</b> · ${escapeHtml(formatUnlockDate(record.unlockedAt))}</span>
+        </div>
+      </article>`).join("")}</div>`;
+    return;
+  }
+
+  eyebrow.textContent="LIFE ACHIEVEMENTS";
+  title.textContent="战绩记录";
+  intro.textContent="按完成时间倒序整理的人生战绩档案";
+  const filterOptions=[
+    ["all","全部"],["normal","普通任务"],["high","高等级任务"],["final","FINAL"]
+  ];
+  filters.innerHTML=filterOptions.map(([value,label])=>`
+    <button type="button" class="archive-filter${archiveRecordFilter===value?" active":""}"
+      data-record-filter="${value}" aria-pressed="${archiveRecordFilter===value}">${label}</button>`).join("");
+  const records=state.completed.map((record,index)=>({record,index,time:Date.parse(record.completedAt||record.date||"")||0}))
+    .sort((a,b)=>b.time-a.time||b.index-a.index)
+    .map(item=>item.record)
+    .filter(record=>archiveRecordFilter==="all"||recordCategory(record.rank)===archiveRecordFilter);
+  if(!records.length){
+    body.innerHTML=`<div class="empty-archive">暂无战绩记录</div>`;
+    return;
+  }
+  body.innerHTML=`<div class="archive-list">${records.map(record=>{
+    const category=recordCategory(record.rank);
+    const unlocks=recordUnlockSummary(record);
+    return `<article class="record-card ${category}">
+      <div class="archive-card-top">
+        <div class="archive-card-name">${escapeHtml(record.title||"未命名战绩")}</div>
+        <span class="rank-badge">${escapeHtml(record.rank||"-")}</span>
+      </div>
+      <div class="archive-card-meta"><span><b>完成日期</b> · ${escapeHtml(record.date||formatUnlockDate(record.completedAt))}</span></div>
+      <div class="record-rewards">${escapeHtml(record.rewards||"未记录奖励")}</div>
+      ${unlocks.length?`<div class="record-unlocks">解锁 · ${unlocks.map(escapeHtml).join(" · ")}</div>`:""}
+    </article>`;
+  }).join("")}</div>`;
+}
+
 function renderShop(){
   const box=document.getElementById("shopGrid");
   box.innerHTML=state.shop.map((x,i)=>`
@@ -2182,6 +2490,7 @@ function render(){
   renderTimeline();
   renderShop();
   renderFinal();
+  if(document.getElementById("archiveModal")?.classList.contains("open"))renderArchiveContent();
   setTimeout(setupReveal,0);
 }
 
@@ -2207,15 +2516,14 @@ function completeTask(id){
   state.exp+=safeNum(t.exp);
   state.coins+=safeNum(t.coins);
   state.attrs[t.attr]=safeNum(state.attrs[t.attr],0)+safeNum(t.gain,1);
+  const completedAt=new Date().toISOString();
 
-  if(t.titleReward){
-    if(!state.titles.includes(t.titleReward))state.titles.push(t.titleReward);
-    state.currentTitle=t.titleReward;
-  }
-  if(t.regionReward&&!state.regions.includes(t.regionReward))state.regions.push(t.regionReward);
+  if(t.titleReward)unlockTitle(t.titleReward,t.title,completedAt);
+  if(t.regionReward)unlockRegion(t.regionReward,t.title,completedAt);
 
   state.completed.push({
-    title:t.title,rank:t.rank,date:new Date().toLocaleDateString("zh-CN"),
+    title:t.title,rank:t.rank,date:new Date(completedAt).toLocaleDateString("zh-CN"),completedAt,
+    titleReward:t.titleReward||"",regionReward:t.regionReward||"",
     rewards:`+${safeNum(t.exp)} EXP · +${safeNum(t.coins)} 金币 · ${t.attr} +${safeNum(t.gain,1)}${t.titleReward?" · 解锁称号「"+t.titleReward+"」":""}`
   });
 
@@ -2370,14 +2678,12 @@ function completeFinalTask(){
   state.coins+=safeNum(f.coins);
   state.attrs[f.attr]=100;
 
-  if(f.titleReward){
-    if(!state.titles.includes(f.titleReward))state.titles.push(f.titleReward);
-    state.currentTitle=f.titleReward;
-  }
+  if(f.titleReward)unlockTitle(f.titleReward,f.title,f.completedAt);
   if(f.chapterReward&&!state.chapters.includes(f.chapterReward))state.chapters.push(f.chapterReward);
 
   state.completed.push({
-    title:f.title,rank:"FINAL",date:new Date().toLocaleDateString("zh-CN"),
+    title:f.title,rank:"FINAL",date:new Date(f.completedAt).toLocaleDateString("zh-CN"),completedAt:f.completedAt,
+    titleReward:f.titleReward||"",regionReward:"",
     rewards:`MAX LEVEL · MAX 金币 · ${f.attr} MAX · 解锁称号「${f.titleReward}」 · 解锁章节「${f.chapterReward}」`
   });
   save();
@@ -2418,6 +2724,50 @@ function goTo(id){
   if(PAGE_ROUTES.includes(id)&&navigatePage)navigatePage(id);
   else document.getElementById(id)?.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"instant":"smooth",block:"start"});
 }
+function openArchiveModal(view){
+  if(!["records","titles","regions"].includes(view))return;
+  archiveView=view;
+  if(view!=="records")archiveRecordFilter="all";
+  archiveLastFocus=document.activeElement;
+  clearTimeout(archiveCloseTimer);
+  const modal=document.getElementById("archiveModal");
+  modal.classList.remove("closing");
+  modal.classList.add("open");
+  modal.setAttribute("aria-hidden","false");
+  document.body.classList.add("modal-open");
+  renderArchiveContent();
+  document.getElementById("archiveBody").scrollTop=0;
+  requestAnimationFrame(()=>modal.querySelector(".close-btn")?.focus({preventScroll:true}));
+}
+function closeArchiveModal(){
+  const modal=document.getElementById("archiveModal");
+  if(!modal.classList.contains("open"))return;
+  clearTimeout(archiveCloseTimer);
+  modal.classList.add("closing");
+  const duration=matchMedia("(prefers-reduced-motion: reduce)").matches?0:200;
+  archiveCloseTimer=setTimeout(()=>{
+    modal.classList.remove("open","closing");
+    modal.setAttribute("aria-hidden","true");
+    if(!document.querySelector(".modal.open")&&!document.getElementById("rewardOverlay").classList.contains("show"))document.body.classList.remove("modal-open");
+    archiveLastFocus?.focus?.({preventScroll:true});
+    archiveLastFocus=null;
+  },duration);
+}
+function equipTitleByIndex(index){
+  if(IS_PREVIEW)return;
+  const record=state.titleRecords[index];
+  if(!record||!state.titles.includes(record.title)||record.title===state.currentTitle)return;
+  state.currentTitle=record.title;
+  state.titleRecords.forEach(item=>item.equipped=item.title===record.title);
+  save();
+  toast("已切换称号："+record.title);
+  requestAnimationFrame(()=>document.querySelector("#archiveBody .title-card.current")?.focus({preventScroll:true}));
+}
+function setArchiveRecordFilter(filter){
+  if(!["all","normal","high","final"].includes(filter))return;
+  archiveRecordFilter=filter;
+  renderArchiveContent();
+}
 function openSettingsModal(){openModal("settingsModal")}
 function closeSettingsModal(){closeModal("settingsModal")}
 function openTaskModal(){openModal("taskModal")}
@@ -2429,10 +2779,22 @@ function openModal(id){
   document.body.classList.add("modal-open");
 }
 function closeModal(id){
+  if(id==="archiveModal"){closeArchiveModal();return}
   document.getElementById(id).classList.remove("open");
   if(!document.querySelector(".modal.open")&&!document.getElementById("rewardOverlay").classList.contains("show"))document.body.classList.remove("modal-open");
 }
 document.querySelectorAll(".modal").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)closeModal(m.id)}));
+document.getElementById("archiveBody").addEventListener("click",event=>{
+  const card=event.target.closest("[data-title-index]");
+  if(card)equipTitleByIndex(Number(card.dataset.titleIndex));
+});
+document.getElementById("archiveFilters").addEventListener("click",event=>{
+  const filter=event.target.closest("[data-record-filter]");
+  if(filter)setArchiveRecordFilter(filter.dataset.recordFilter);
+});
+document.addEventListener("keydown",event=>{
+  if(event.key==="Escape"&&document.getElementById("archiveModal").classList.contains("open"))closeArchiveModal();
+});
 
 let toastTimer;
 function toast(msg){
