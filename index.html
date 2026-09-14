@@ -651,6 +651,18 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
 }
 .title-card.current .archive-status{background:#0071e3;color:#fff}
 .region-card .archive-status{background:#eaf7ed;color:#248a3d}
+.region-card{
+  width:100%;text-align:left;color:inherit;font:inherit;appearance:none;position:relative;overflow:hidden;
+  cursor:pointer;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease
+}
+.region-card:hover{transform:translateY(-2px);border-color:rgba(0,113,227,.2);box-shadow:0 13px 34px rgba(0,0,0,.08)}
+.region-card:active{transform:scale(.99)}
+.region-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-offset:2px}
+.region-card.has-cover{min-height:142px;color:#fff;border-color:rgba(255,255,255,.08);background-size:cover;background-position:center}
+.region-card.has-cover::before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,rgba(0,0,0,.82),rgba(0,0,0,.42) 62%,rgba(0,0,0,.18));pointer-events:none}
+.region-card.has-cover>*{position:relative;z-index:1}
+.region-card.has-cover .archive-card-meta,.region-card.has-cover .archive-card-meta b{color:rgba(255,255,255,.78)}
+.region-card.has-cover .archive-status{background:rgba(255,255,255,.16);color:#fff;backdrop-filter:blur(10px)}
 .archive-card-meta{display:grid;gap:5px;margin-top:12px;color:#77777c;font-size:12px;line-height:1.45}
 .archive-card-meta b{color:#4f4f54;font-weight:700}
 .record-card{position:relative;overflow:hidden}
@@ -669,6 +681,59 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
 .record-rewards{margin-top:12px;color:#55555a;font-size:13px;line-height:1.55}
 .record-unlocks{margin-top:10px;color:#9a6b13;font-size:12px;font-weight:700;line-height:1.5}
 .empty-archive{padding:54px 20px;text-align:center;color:#8e8e93;font-size:14px}
+.archive-back{
+  display:none;border:0;background:transparent;color:var(--blue);padding:4px 0;margin:0 0 8px;
+  font-size:13px;font-weight:700;cursor:pointer
+}
+.archive-back.show{display:inline-flex;align-items:center;gap:5px}
+.region-detail{display:grid;gap:18px}
+.region-cover{
+  position:relative;min-height:260px;border-radius:26px;overflow:hidden;color:#fff;
+  background:linear-gradient(135deg,#19212d,#090b10 72%);display:flex;align-items:flex-end;padding:24px
+}
+.region-cover.has-photo{background-size:cover;background-position:center}
+.region-cover::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.76));pointer-events:none}
+.region-cover-copy{position:relative;z-index:1}
+.region-cover-copy span{font-size:10px;letter-spacing:.16em;font-weight:800;color:rgba(255,255,255,.7)}
+.region-cover-copy h4{margin:8px 0 0;font-size:clamp(34px,6vw,58px);line-height:.95;letter-spacing:-.055em}
+.region-facts{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.region-fact{padding:15px 16px;border-radius:18px;background:#f5f5f7;color:#77777c;font-size:12px;line-height:1.5}
+.region-fact b{display:block;margin-top:4px;color:#1d1d1f;font-size:14px}
+.region-note-panel{padding:20px;border:1px solid var(--line);border-radius:22px;background:#fff}
+.region-section-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}
+.region-section-title h4{margin:0;font-size:19px;letter-spacing:-.03em}
+.region-note-time{font-size:11px;color:var(--muted)}
+.region-note-copy{margin:0;white-space:pre-wrap;color:#4f4f54;font-size:15px;line-height:1.75}
+.region-note-copy.empty{padding:14px 0;background:none;border-radius:0;text-align:left;color:#9a9aa0}
+.region-note-editor textarea{min-height:132px;margin:0;background:#f7f7f9}
+.region-note-actions{display:flex;justify-content:flex-end;margin-top:10px}
+.region-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.region-toolbar h4{margin:0;font-size:19px;letter-spacing:-.03em}
+.region-upload-btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:9px 13px;border:0;border-radius:999px;background:#1d1d1f;color:#fff;font-size:12px;font-weight:750;cursor:pointer}
+.region-upload-status{display:none;padding:13px 15px;border-radius:16px;background:#f5f5f7;color:#55555a;font-size:12px;line-height:1.55;white-space:pre-line}
+.region-upload-status.show{display:block}
+.region-upload-status.error{background:#fff2f0;color:#a02b20}
+.region-upload-retry{margin-top:8px;border:0;border-radius:999px;padding:7px 11px;background:#1d1d1f;color:#fff;font-size:11px;font-weight:700;cursor:pointer}
+.region-gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.region-photo{
+  position:relative;aspect-ratio:1;border:0;border-radius:18px;overflow:hidden;background:#ededf0;padding:0;cursor:zoom-in
+}
+.region-photo img{width:100%;height:100%;display:block;object-fit:cover;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.region-photo:hover img{transform:scale(1.035)}
+.region-photo-cover{position:absolute;left:8px;top:8px;padding:5px 8px;border-radius:999px;background:rgba(0,0,0,.62);color:#fff;font-size:9px;font-weight:800;backdrop-filter:blur(8px)}
+.region-gallery-empty{grid-column:1/-1;padding:36px 18px;border-radius:20px;background:#f7f7f9;text-align:center;color:#8e8e93;font-size:13px}
+.region-config-note{padding:13px 15px;border-radius:16px;background:#fff8e8;color:#846313;font-size:12px;line-height:1.55}
+.lightbox-modal{z-index:170;align-items:center;padding:18px;background:rgba(0,0,0,.9);backdrop-filter:blur(16px)}
+.lightbox-shell{width:min(100%,1100px);height:min(88svh,820px);display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:12px}
+.lightbox-top{display:flex;align-items:center;justify-content:space-between;color:#fff}
+.lightbox-count{font-size:12px;color:#aaa}
+.lightbox-image-wrap{position:relative;display:grid;place-items:center;min-height:0;touch-action:pan-y}
+.lightbox-image{max-width:100%;max-height:100%;object-fit:contain;border-radius:16px;box-shadow:0 18px 70px rgba(0,0,0,.5)}
+.lightbox-nav{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:42px;border:0;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;font-size:24px;backdrop-filter:blur(10px);cursor:pointer}
+.lightbox-nav.prev{left:10px}.lightbox-nav.next{right:10px}
+.lightbox-actions{display:flex;justify-content:center;gap:8px;min-height:40px}
+.lightbox-action{border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:9px 14px;background:rgba(255,255,255,.1);color:#fff;font-size:12px;font-weight:700;cursor:pointer}
+.lightbox-action.danger{color:#ffb4aa}.lightbox-action.cover{color:#f3d58c}
 .archive-modal.closing{display:flex;animation:archive-backdrop-out .2s ease both}
 .archive-modal.closing .archive-sheet{animation:archive-sheet-out .2s ease both}
 @keyframes archive-backdrop-out{to{opacity:0}}
@@ -757,6 +822,12 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
   .archive-filters{padding:12px 20px 0}
   .archive-body{padding:16px 16px calc(24px + var(--safe-bottom))}
   .unlock-card,.record-card{padding:16px}
+  .region-cover{min-height:220px;padding:20px}
+  .region-facts{grid-template-columns:1fr}
+  .region-gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .lightbox-modal{padding:10px}
+  .lightbox-shell{height:92svh}
+  .lightbox-nav{width:38px;height:38px}
   .japan-photo-card{min-height:520px}
   .japan-photo-copy{padding:28px}
   .japan-photo-copy h3{font-size:38px}
@@ -1154,6 +1225,7 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
 <div class="modal archive-modal" id="archiveModal" aria-hidden="true">
   <div class="sheet archive-sheet" role="dialog" aria-modal="true" aria-labelledby="archiveTitle" tabindex="-1">
     <div class="archive-head">
+      <button type="button" class="archive-back" id="archiveBack" aria-label="返回已解锁区域">← 返回区域</button>
       <div class="sheet-top">
         <div>
           <div class="archive-eyebrow" id="archiveEyebrow">LIFE ARCHIVE</div>
@@ -1165,6 +1237,23 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
       <div class="archive-filters" id="archiveFilters" aria-label="战绩筛选"></div>
     </div>
     <div class="archive-body" id="archiveBody"></div>
+  </div>
+</div>
+
+<input id="regionPhotoInput" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif" multiple hidden>
+
+<div class="modal lightbox-modal" id="regionLightbox" aria-hidden="true">
+  <div class="lightbox-shell" role="dialog" aria-modal="true" aria-label="区域照片查看器">
+    <div class="lightbox-top">
+      <div class="lightbox-count" id="lightboxCount"></div>
+      <button type="button" class="close-btn" onclick="closeRegionLightbox()" aria-label="关闭照片查看器">×</button>
+    </div>
+    <div class="lightbox-image-wrap" id="lightboxImageWrap">
+      <button type="button" class="lightbox-nav prev" onclick="stepRegionPhoto(-1)" aria-label="上一张照片">‹</button>
+      <img class="lightbox-image" id="lightboxImage" alt="区域照片">
+      <button type="button" class="lightbox-nav next" onclick="stepRegionPhoto(1)" aria-label="下一张照片">›</button>
+    </div>
+    <div class="lightbox-actions" id="lightboxActions"></div>
   </div>
 </div>
 
@@ -1191,6 +1280,12 @@ const IS_PREVIEW=new URLSearchParams(location.search).get("preview")==="1";
 const SUPABASE_URL="https://kqmaxyrvpxvqewoecwyh.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_Aj1vpHDpbCoPdMcsASIbiw_vNsU_B6w";
 const PUBLIC_STATE_SLUG="zuoyu";
+const REGION_BUCKET="region-photos";
+const REGION_IMAGE_MAX_EDGE=2560;
+const REGION_THUMB_MAX_EDGE=720;
+const REGION_WEBP_QUALITY=.85;
+const REGION_THUMB_QUALITY=.78;
+const HEIC_CONVERTER_SRC="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js";
 
 let supabaseClient=null;
 let cloudUser=null;
@@ -1205,8 +1300,24 @@ let pendingSaveUpdatedAt=null;
 let localStateRevision=0;
 let ownerStateChannel=null;
 let publicStateChannel=null;
+let regionDetailsChannel=null;
+let regionPhotosChannel=null;
 let cloudPollingTimer=null;
 let cloudLifecycleReady=false;
+let activeRegionId=null;
+let regionDetails=new Map();
+let regionPhotos=[];
+let regionDataLoaded=false;
+let regionDataLoading=false;
+let regionDataError="";
+let regionUploadFailures=[];
+let regionUploadMessage="";
+let regionUploadError=false;
+let regionUploadCanRetry=false;
+let regionLightboxIndex=0;
+let regionLightboxStartX=null;
+let regionOwnerVerified=false;
+let heicConverterPromise=null;
 const RANKS=["E","D","C","B","A","S","SS","SSS"];
 const RANK_THRESHOLDS={E:0,D:300,C:900,B:2200,A:5000,S:9000,SS:15000,SSS:25000};
 
@@ -1284,6 +1395,18 @@ function uniqueTextValues(values){
   return [...new Set((Array.isArray(values)?values:[]).map(value=>String(value||"").trim()).filter(Boolean))];
 }
 
+function regionIdForName(name){
+  const known={"日本":"japan","香港":"hongkong","澳门":"macau","法国":"france"};
+  name=String(name||"").trim();
+  if(known[name])return known[name];
+  let hash=2166136261;
+  for(const char of name.normalize("NFKC")){
+    hash^=char.codePointAt(0);
+    hash=Math.imul(hash,16777619);
+  }
+  return"region-"+(hash>>>0).toString(36);
+}
+
 function reconcileUnlockRecords(s){
   const completed=Array.isArray(s.completed)?s.completed:[];
   const oldTitles=Array.isArray(s.titleRecords)?s.titleRecords.filter(Boolean):[];
@@ -1312,7 +1435,9 @@ function reconcileUnlockRecords(s){
       record?.regionReward===name||String(record?.rewards||"").includes(`区域「${name}」`)
     );
     return{
+      ...existing,
       name,
+      regionId:existing.regionId||regionIdForName(name),
       unlockedAt:existing.unlockedAt||achievement?.completedAt||achievement?.date||null,
       source:existing.source||achievement?.title||"历史解锁"
     };
@@ -1408,9 +1533,10 @@ function unlockRegion(name,source,unlockedAt){
   if(newlyUnlocked)state.regions.push(name);
   let record=state.regionRecords.find(item=>item.name===name);
   if(!record){
-    record={name,unlockedAt:unlockedAt||new Date().toISOString(),source:source||"任务奖励"};
+    record={name,regionId:regionIdForName(name),unlockedAt:unlockedAt||new Date().toISOString(),source:source||"任务奖励"};
     state.regionRecords.push(record);
   }else if(newlyUnlocked){
+    if(!record.regionId)record.regionId=regionIdForName(name);
     if(!record.unlockedAt&&unlockedAt)record.unlockedAt=unlockedAt;
     if((!record.source||record.source==="历史解锁")&&source)record.source=source;
   }
@@ -1532,6 +1658,7 @@ function applyRemoteState(row,{preview=false,force=false}={}){
   suppressCloudSave=true;
   try{
     state=migrateState(clone(row.state),{persist:!preview});
+    regionDataLoaded=false;
     if(!preview)localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
     localStateRevision++;
     render();
@@ -1767,10 +1894,35 @@ function subscribePublicState(){
     });
 }
 
+function subscribeRegionData(){
+  removeCloudChannel(regionDetailsChannel);
+  removeCloudChannel(regionPhotosChannel);
+  regionDetailsChannel=supabaseClient.channel("region-details-"+PUBLIC_STATE_SLUG)
+    .on("postgres_changes",{event:"*",schema:"public",table:"region_details"},payload=>{
+      const row=payload.new;
+      if(row?.region_id)regionDetails.set(row.region_id,row);
+      else if(payload.old?.region_id)regionDetails.delete(payload.old.region_id);
+      regionDataLoaded=true;
+      if(document.getElementById("archiveModal")?.classList.contains("open"))renderArchiveContent();
+    }).subscribe(status=>{if(["CHANNEL_ERROR","TIMED_OUT"].includes(status))refreshRegionData({force:true})});
+  regionPhotosChannel=supabaseClient.channel("region-photos-"+PUBLIC_STATE_SLUG)
+    .on("postgres_changes",{event:"*",schema:"public",table:"region_photos"},payload=>{
+      const row=payload.new;
+      if(row?.id){
+        const index=regionPhotos.findIndex(photo=>photo.id===row.id);
+        if(index>=0)regionPhotos[index]=row;else regionPhotos.push(row);
+      }else if(payload.old?.id)regionPhotos=regionPhotos.filter(photo=>photo.id!==payload.old.id);
+      regionDataLoaded=true;
+      if(document.getElementById("archiveModal")?.classList.contains("open"))renderArchiveContent();
+      if(document.getElementById("regionLightbox")?.classList.contains("open"))renderRegionLightbox();
+    }).subscribe(status=>{if(["CHANNEL_ERROR","TIMED_OUT"].includes(status))refreshRegionData({force:true})});
+}
+
 function refreshCloudState(){
   if(!supabaseClient)return;
   if(IS_PREVIEW)loadPublicPreview();
   else if(cloudUser)pullCloudState();
+  if(document.getElementById("archiveModal")?.classList.contains("open")&&["regions","region-detail"].includes(archiveView))refreshRegionData({force:true});
 }
 
 function setupCloudLifecycle(){
@@ -1813,6 +1965,7 @@ async function cloudLogin(){
   updateCloudUI();
   toast("云存档已登录");
   await bootstrapCloudForUser();
+  await verifyRegionOwner();
   subscribeOwnerState();
 }
 
@@ -1824,6 +1977,7 @@ async function cloudLogout(){
   clearTimeout(cloudPublicRetryTimer);
   await supabaseClient.auth.signOut();
   cloudUser=null;
+  regionOwnerVerified=false;
   knownSaveUpdatedAt=null;
   updateCloudUI();
   setCloudStatus("未登录","muted");
@@ -1856,6 +2010,7 @@ async function initCloud(){
       }
     }
   );
+  subscribeRegionData();
 
   if(IS_PREVIEW){
     updateCloudUI();
@@ -1880,6 +2035,7 @@ async function initCloud(){
 
   if(cloudUser){
     await bootstrapCloudForUser();
+    await verifyRegionOwner();
     subscribeOwnerState();
   }else{
     setCloudStatus("未登录 · 本地存档","muted");
@@ -1897,10 +2053,12 @@ async function initCloud(){
       removeCloudChannel(ownerStateChannel);
       ownerStateChannel=null;
       knownSaveUpdatedAt=null;
+      regionOwnerVerified=false;
       setCloudStatus("未登录 · 本地存档","muted");
     }else if(event==="SIGNED_IN"&&cloudUser&&changed){
       setTimeout(async()=>{
         await bootstrapCloudForUser();
+        await verifyRegionOwner();
         subscribeOwnerState();
       },0);
     }
@@ -2305,6 +2463,217 @@ function formatUnlockDate(value){
   return Number.isFinite(time)?new Date(time).toLocaleDateString("zh-CN"):text;
 }
 
+function formatRegionTimestamp(value,prefix=""){
+  const time=Date.parse(value||"");
+  if(!Number.isFinite(time))return"日期未知";
+  const date=new Date(time);
+  return prefix+date.getFullYear()+"."+String(date.getMonth()+1).padStart(2,"0");
+}
+
+function regionOwnerMode(){return !IS_PREVIEW&&Boolean(cloudUser)&&regionOwnerVerified}
+
+async function verifyRegionOwner(){
+  regionOwnerVerified=false;
+  if(IS_PREVIEW||!cloudUser||!supabaseClient)return false;
+  try{
+    const {data,error}=await supabaseClient.from("public_state").select("owner_id").eq("slug",PUBLIC_STATE_SLUG).maybeSingle();
+    if(error)throw error;
+    regionOwnerVerified=data?.owner_id===cloudUser.id;
+  }catch(error){
+    console.error("Region owner verification failed",error);
+  }
+  if(document.getElementById("archiveModal")?.classList.contains("open"))renderArchiveContent();
+  return regionOwnerVerified;
+}
+
+function photoPublicUrl(path){
+  if(!path||!supabaseClient)return"";
+  return supabaseClient.storage.from(REGION_BUCKET).getPublicUrl(path).data?.publicUrl||"";
+}
+
+function regionPhotosFor(regionId){
+  return regionPhotos.filter(photo=>photo.region_id===regionId).sort((a,b)=>safeNum(a.sort_order)-safeNum(b.sort_order)||Date.parse(a.created_at||0)-Date.parse(b.created_at||0));
+}
+
+function regionCoverFor(regionId){
+  const photos=regionPhotosFor(regionId);
+  return photos.find(photo=>photo.is_cover)||photos[0]||null;
+}
+
+async function refreshRegionData({force=false}={}){
+  if(!supabaseClient||regionDataLoading||(!force&&regionDataLoaded))return;
+  regionDataLoading=true;
+  regionDataError="";
+  try{
+    const [detailsResult,photosResult]=await Promise.all([
+      supabaseClient.from("region_details").select("region_id,owner_id,title,note,updated_at"),
+      supabaseClient.from("region_photos").select("id,region_id,owner_id,storage_path,thumbnail_path,sort_order,is_cover,created_at")
+    ]);
+    if(detailsResult.error)throw detailsResult.error;
+    if(photosResult.error)throw photosResult.error;
+    const validIds=new Set(state.regionRecords.map(record=>record.regionId||regionIdForName(record.name)));
+    regionDetails=new Map((detailsResult.data||[]).filter(row=>validIds.has(row.region_id)).map(row=>[row.region_id,row]));
+    regionPhotos=(photosResult.data||[]).filter(row=>validIds.has(row.region_id));
+    regionDataLoaded=true;
+  }catch(error){
+    regionDataError=/relation .* does not exist|schema cache|404/i.test(String(error?.message||error))
+      ?"区域云端结构尚未配置，请先执行项目提供的 Supabase SQL。"
+      :"区域详情暂时无法加载，请稍后重试。";
+    console.error("Region data load failed",error);
+  }finally{
+    regionDataLoading=false;
+    if(document.getElementById("archiveModal")?.classList.contains("open")&&["regions","region-detail"].includes(archiveView))renderArchiveContent();
+  }
+}
+
+function regionRecordById(regionId){
+  return state.regionRecords.find(record=>(record.regionId||regionIdForName(record.name))===regionId)||null;
+}
+
+function canvasBlob(canvas,type,quality){
+  return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error("浏览器无法生成压缩图片")),type,quality));
+}
+
+async function decodeRegionImage(blob){
+  if("createImageBitmap" in window){
+    try{return await createImageBitmap(blob,{imageOrientation:"from-image"})}catch(error){}
+    try{return await createImageBitmap(blob)}catch(error){}
+  }
+  return new Promise((resolve,reject)=>{
+    const url=URL.createObjectURL(blob);
+    const image=new Image();
+    image.onload=()=>{URL.revokeObjectURL(url);resolve(image)};
+    image.onerror=()=>{URL.revokeObjectURL(url);reject(new Error("浏览器无法读取这张图片"))};
+    image.src=url;
+  });
+}
+
+async function prepareRegionSource(file){
+  const heic=/\.(heic|heif)$/i.test(file.name)||/image\/(heic|heif)/i.test(file.type);
+  if(!heic)return file;
+  if(typeof window.heic2any!=="function"){
+    heicConverterPromise=heicConverterPromise||new Promise((resolve,reject)=>{
+      const script=document.createElement("script");
+      script.src=HEIC_CONVERTER_SRC;
+      script.async=true;
+      script.onload=()=>typeof window.heic2any==="function"?resolve():reject(new Error("HEIC 转换组件不可用"));
+      script.onerror=()=>reject(new Error("HEIC 转换组件加载失败，请检查网络后重试"));
+      document.head.appendChild(script);
+    });
+    await heicConverterPromise;
+  }
+  const converted=await window.heic2any({blob:file,toType:"image/jpeg",quality:.94});
+  return Array.isArray(converted)?converted[0]:converted;
+}
+
+async function encodeRegionVariant(image,maxEdge,quality){
+  const width=image.width||image.naturalWidth;
+  const height=image.height||image.naturalHeight;
+  const scale=Math.min(1,maxEdge/Math.max(width,height));
+  const canvas=document.createElement("canvas");
+  canvas.width=Math.max(1,Math.round(width*scale));
+  canvas.height=Math.max(1,Math.round(height*scale));
+  const context=canvas.getContext("2d",{alpha:false});
+  context.imageSmoothingEnabled=true;
+  context.imageSmoothingQuality="high";
+  context.drawImage(image,0,0,canvas.width,canvas.height);
+  try{return await canvasBlob(canvas,"image/webp",quality)}
+  catch(error){return canvasBlob(canvas,"image/jpeg",Math.min(.92,quality+.05))}
+}
+
+async function compressRegionImage(file){
+  const source=await prepareRegionSource(file);
+  const image=await decodeRegionImage(source);
+  try{
+    let main=await encodeRegionVariant(image,REGION_IMAGE_MAX_EDGE,REGION_WEBP_QUALITY);
+    if(main.size>file.size&&Math.max(image.width||image.naturalWidth,image.height||image.naturalHeight)<=REGION_IMAGE_MAX_EDGE){
+      for(const quality of [.8,.75]){
+        const candidate=await encodeRegionVariant(image,REGION_IMAGE_MAX_EDGE,quality);
+        if(candidate.size<main.size)main=candidate;
+        if(main.size<=file.size)break;
+      }
+    }
+    const thumbnail=await encodeRegionVariant(image,REGION_THUMB_MAX_EDGE,REGION_THUMB_QUALITY);
+    const extension=main.type==="image/webp"?"webp":"jpg";
+    return{main,thumbnail,extension,originalSize:file.size};
+  }finally{image.close?.()}
+}
+
+function uploadStatus(message,{error=false,retry=false}={}){
+  regionUploadMessage=message;
+  regionUploadError=error;
+  regionUploadCanRetry=retry;
+  const box=document.getElementById("regionUploadStatus");
+  if(!box)return;
+  box.className="region-upload-status show"+(error?" error":"");
+  box.innerHTML=`${escapeHtml(message)}${retry?'<br><button type="button" class="region-upload-retry" onclick="retryRegionUploads()">重试失败照片</button>':""}`;
+}
+
+function fileSizeLabel(bytes){
+  const mb=bytes/1024/1024;
+  return mb>=1?mb.toFixed(1)+"MB":Math.max(1,Math.round(bytes/1024))+"KB";
+}
+
+async function uploadPreparedRegionPhoto(file,prepared,index,total){
+  if(!regionOwnerMode())throw new Error("主人身份未验证");
+  const stamp=Date.now();
+  const id=crypto.randomUUID();
+  const base=`${cloudUser.id}/${activeRegionId}/${stamp}-${id}`;
+  const mainPath=`${base}.${prepared.extension}`;
+  const thumbPath=`${base}-thumb.${prepared.extension}`;
+  uploadStatus(`正在上传 ${index} / ${total} · ${file.name}`);
+  const bucket=supabaseClient.storage.from(REGION_BUCKET);
+  const mainResult=await bucket.upload(mainPath,prepared.main,{contentType:prepared.main.type,cacheControl:"31536000",upsert:false});
+  if(mainResult.error)throw mainResult.error;
+  const thumbResult=await bucket.upload(thumbPath,prepared.thumbnail,{contentType:prepared.thumbnail.type,cacheControl:"31536000",upsert:false});
+  if(thumbResult.error){await bucket.remove([mainPath]);throw thumbResult.error}
+  const photos=regionPhotosFor(activeRegionId);
+  const payload={
+    id,owner_id:cloudUser.id,region_id:activeRegionId,storage_path:mainPath,thumbnail_path:thumbPath,
+    sort_order:photos.length,is_cover:photos.length===0,created_at:new Date().toISOString()
+  };
+  const insertResult=await supabaseClient.from("region_photos").insert(payload).select("id,region_id,owner_id,storage_path,thumbnail_path,sort_order,is_cover,created_at").single();
+  if(insertResult.error){await bucket.remove([mainPath,thumbPath]);throw insertResult.error}
+  regionPhotos.push(insertResult.data||payload);
+  return prepared;
+}
+
+async function processRegionFiles(files){
+  files=Array.from(files||[]);
+  if(!files.length||!activeRegionId)return;
+  if(!regionOwnerMode())return toast("请先登录主人云存档");
+  regionUploadFailures=[];
+  let savedBytes=0;
+  let originalBytes=0;
+  for(let index=0;index<files.length;index++){
+    const file=files[index];
+    try{
+      uploadStatus(`正在处理图片...\n正在压缩 ${index+1} / ${files.length} · ${file.name}`);
+      const prepared=await compressRegionImage(file);
+      await uploadPreparedRegionPhoto(file,prepared,index+1,files.length);
+      originalBytes+=prepared.originalSize;
+      savedBytes+=prepared.main.size+prepared.thumbnail.size;
+    }catch(error){
+      console.error("Region photo upload failed",file.name,error);
+      regionUploadFailures.push(file);
+    }
+    renderRegionDetail();
+  }
+  if(regionUploadFailures.length){
+    uploadStatus(`${regionUploadFailures.length} 张上传失败：${regionUploadFailures.map(file=>file.name).join("、")}。其他照片已继续处理。`,{error:true,retry:true});
+  }else{
+    const saving=originalBytes?Math.max(0,Math.round((1-savedBytes/originalBytes)*100)):0;
+    uploadStatus(`上传完成 ✓\n原始大小：${fileSizeLabel(originalBytes)} · 上传大小：${fileSizeLabel(savedBytes)} · 已节省：${saving}%`);
+  }
+  await refreshRegionData({force:true});
+}
+
+async function retryRegionUploads(){
+  const files=regionUploadFailures.slice();
+  regionUploadFailures=[];
+  await processRegionFiles(files);
+}
+
 function recordCategory(rank){
   rank=String(rank||"").toUpperCase();
   if(rank==="FINAL")return"final";
@@ -2324,6 +2693,53 @@ function recordUnlockSummary(record){
   return unlocks;
 }
 
+function renderRegionDetail(){
+  if(archiveView!=="region-detail")return;
+  const body=document.getElementById("archiveBody");
+  const record=regionRecordById(activeRegionId);
+  if(!record){body.innerHTML=`<div class="empty-archive">区域记录不存在</div>`;return}
+  const detail=regionDetails.get(activeRegionId)||null;
+  const photos=regionPhotosFor(activeRegionId);
+  const cover=regionCoverFor(activeRegionId);
+  const coverUrl=cover?photoPublicUrl(cover.storage_path):"";
+  const owner=regionOwnerMode();
+  const note=detail?.note||"";
+  document.getElementById("archiveEyebrow").textContent="REGION MEMORY";
+  document.getElementById("archiveTitle").textContent=record.name;
+  document.getElementById("archiveIntro").textContent="一处真实抵达过的地方，一段只属于你的记录";
+  document.getElementById("archiveFilters").innerHTML="";
+  body.innerHTML=`<div class="region-detail">
+    <section class="region-cover${coverUrl?" has-photo":""}"${coverUrl?` style="background-image:url('${escapeHtml(coverUrl)}')"`:""}>
+      <div class="region-cover-copy"><span>UNLOCKED REGION</span><h4>${escapeHtml(record.name)}</h4></div>
+    </section>
+    <div class="region-facts">
+      <div class="region-fact">解锁时间<b>${escapeHtml(formatUnlockDate(record.unlockedAt))}</b></div>
+      <div class="region-fact">解锁来源<b>${escapeHtml(record.source||"历史解锁")}</b></div>
+    </div>
+    ${regionDataError?`<div class="region-config-note">${escapeHtml(regionDataError)}</div>`:""}
+    <section class="region-note-panel">
+      <div class="region-section-title"><h4>留在这里的话</h4><span class="region-note-time">${detail?.updated_at?escapeHtml(formatRegionTimestamp(detail.updated_at,"写于 ")):"尚未书写"}</span></div>
+      ${owner?`<div class="region-note-editor">
+        <textarea id="regionNoteInput" maxlength="4000" placeholder="写下这段旅程留下的话…">${escapeHtml(note)}</textarea>
+        <div class="region-note-actions"><button type="button" class="btn btn-dark" onclick="saveRegionNote()">保存留言</button></div>
+      </div>`:`<p class="region-note-copy${note?"":" empty"}">${escapeHtml(note||"主人还没有在这里留下文字")}</p>`}
+    </section>
+    <section>
+      <div class="region-toolbar"><h4>照片墙</h4>${owner?`<button type="button" class="region-upload-btn" onclick="document.getElementById('regionPhotoInput').click()">＋ 上传照片</button>`:""}</div>
+      <div class="region-upload-status${regionUploadMessage?" show":""}${regionUploadError?" error":""}" id="regionUploadStatus" aria-live="polite">${regionUploadMessage?escapeHtml(regionUploadMessage):""}${regionUploadCanRetry?'<br><button type="button" class="region-upload-retry" onclick="retryRegionUploads()">重试失败照片</button>':""}</div>
+      <div class="region-gallery" style="margin-top:12px">
+        ${photos.length?photos.map((photo,index)=>{
+          const thumb=photoPublicUrl(photo.thumbnail_path||photo.storage_path);
+          return `<button type="button" class="region-photo" data-region-photo-index="${index}" aria-label="查看第 ${index+1} 张照片">
+            <img src="${escapeHtml(thumb)}" alt="${escapeHtml(record.name)}照片 ${index+1}" loading="lazy" decoding="async" width="720" height="720">
+            ${photo.is_cover?'<span class="region-photo-cover">区域封面</span>':""}
+          </button>`;
+        }).join(""):`<div class="region-gallery-empty">${regionDataLoading?"正在加载照片…":"暂无照片"}</div>`}
+      </div>
+    </section>
+  </div>`;
+}
+
 function renderArchiveContent(){
   const modal=document.getElementById("archiveModal");
   if(!modal)return;
@@ -2332,6 +2748,13 @@ function renderArchiveContent(){
   const intro=document.getElementById("archiveIntro");
   const filters=document.getElementById("archiveFilters");
   const body=document.getElementById("archiveBody");
+  const back=document.getElementById("archiveBack");
+  back.classList.toggle("show",archiveView==="region-detail");
+
+  if(archiveView==="region-detail"){
+    renderRegionDetail();
+    return;
+  }
 
   if(archiveView==="titles"){
     eyebrow.textContent="TITLE COLLECTION";
@@ -2371,8 +2794,11 @@ function renderArchiveContent(){
       body.innerHTML=`<div class="empty-archive">暂无已解锁区域</div>`;
       return;
     }
-    body.innerHTML=`<div class="archive-list">${state.regionRecords.map(record=>`
-      <article class="unlock-card region-card">
+    body.innerHTML=`<div class="archive-list">${state.regionRecords.map(record=>{
+      const regionId=record.regionId||regionIdForName(record.name);
+      const cover=regionCoverFor(regionId);
+      const coverUrl=cover?photoPublicUrl(cover.thumbnail_path||cover.storage_path):"";
+      return `<button type="button" class="unlock-card region-card${coverUrl?" has-cover":""}" data-region-id="${escapeHtml(regionId)}"${coverUrl?` style="background-image:url('${escapeHtml(coverUrl)}')"`:""}>
         <div class="archive-card-top">
           <div class="archive-card-name">${escapeHtml(record.name)}</div>
           <span class="archive-status">已解锁</span>
@@ -2381,7 +2807,9 @@ function renderArchiveContent(){
           <span><b>解锁来源</b> · ${escapeHtml(record.source||"历史解锁")}</span>
           <span><b>解锁时间</b> · ${escapeHtml(formatUnlockDate(record.unlockedAt))}</span>
         </div>
-      </article>`).join("")}</div>`;
+      </button>`;
+    }).join("")}</div>`;
+    if(!regionDataLoaded&&!regionDataLoading)refreshRegionData();
     return;
   }
 
@@ -2727,6 +3155,7 @@ function goTo(id){
 function openArchiveModal(view){
   if(!["records","titles","regions"].includes(view))return;
   archiveView=view;
+  activeRegionId=null;
   if(view!=="records")archiveRecordFilter="all";
   archiveLastFocus=document.activeElement;
   clearTimeout(archiveCloseTimer);
@@ -2738,6 +3167,103 @@ function openArchiveModal(view){
   renderArchiveContent();
   document.getElementById("archiveBody").scrollTop=0;
   requestAnimationFrame(()=>modal.querySelector(".close-btn")?.focus({preventScroll:true}));
+}
+async function openRegionDetail(regionId){
+  const record=regionRecordById(regionId);
+  if(!record)return;
+  if(activeRegionId!==regionId){
+    regionUploadFailures=[];
+    regionUploadMessage="";
+    regionUploadError=false;
+    regionUploadCanRetry=false;
+  }
+  activeRegionId=regionId;
+  archiveView="region-detail";
+  renderArchiveContent();
+  document.getElementById("archiveBody").scrollTop=0;
+  await refreshRegionData({force:true});
+}
+function returnToRegionArchive(){
+  archiveView="regions";
+  activeRegionId=null;
+  renderArchiveContent();
+  document.getElementById("archiveBody").scrollTop=0;
+}
+async function saveRegionNote(){
+  if(!regionOwnerMode()||!activeRegionId)return toast("当前为只读模式");
+  const record=regionRecordById(activeRegionId);
+  const note=document.getElementById("regionNoteInput")?.value.trim()||"";
+  const updatedAt=new Date().toISOString();
+  const payload={region_id:activeRegionId,owner_id:cloudUser.id,title:record?.name||activeRegionId,note,updated_at:updatedAt};
+  const result=await supabaseClient.from("region_details").upsert(payload,{onConflict:"owner_id,region_id"}).select("region_id,owner_id,title,note,updated_at").single();
+  if(result.error){console.error(result.error);toast("留言保存失败");return}
+  regionDetails.set(activeRegionId,result.data||payload);
+  renderRegionDetail();
+  toast("区域留言已保存");
+}
+function openRegionLightbox(index){
+  const photos=regionPhotosFor(activeRegionId);
+  if(!photos.length)return;
+  regionLightboxIndex=Math.max(0,Math.min(index,photos.length-1));
+  const modal=document.getElementById("regionLightbox");
+  modal.classList.add("open");
+  modal.setAttribute("aria-hidden","false");
+  document.body.classList.add("modal-open");
+  renderRegionLightbox();
+  requestAnimationFrame(()=>modal.querySelector(".close-btn")?.focus({preventScroll:true}));
+}
+function renderRegionLightbox(){
+  const photos=regionPhotosFor(activeRegionId);
+  if(!photos.length){closeRegionLightbox();return}
+  regionLightboxIndex=(regionLightboxIndex+photos.length)%photos.length;
+  const photo=photos[regionLightboxIndex];
+  document.getElementById("lightboxImage").src=photoPublicUrl(photo.storage_path);
+  document.getElementById("lightboxCount").textContent=`${regionLightboxIndex+1} / ${photos.length}`;
+  document.querySelectorAll(".lightbox-nav").forEach(button=>button.style.display=photos.length>1?"grid":"none");
+  document.getElementById("lightboxActions").innerHTML=regionOwnerMode()?`
+    <button type="button" class="lightbox-action cover" onclick="setRegionCover('${escapeHtml(photo.id)}')" ${photo.is_cover?"disabled":""}>${photo.is_cover?"当前区域封面":"设为区域封面"}</button>
+    <button type="button" class="lightbox-action danger" onclick="deleteRegionPhoto('${escapeHtml(photo.id)}')">删除照片</button>`:"";
+}
+function stepRegionPhoto(delta){
+  regionLightboxIndex+=delta;
+  renderRegionLightbox();
+}
+function closeRegionLightbox(){
+  const modal=document.getElementById("regionLightbox");
+  modal.classList.remove("open");
+  modal.setAttribute("aria-hidden","true");
+  document.getElementById("lightboxImage").removeAttribute("src");
+  if(!document.querySelector(".modal.open")&&!document.getElementById("rewardOverlay").classList.contains("show"))document.body.classList.remove("modal-open");
+}
+async function setRegionCover(photoId){
+  if(!regionOwnerMode())return toast("当前为只读模式");
+  const result=await supabaseClient.rpc("set_region_cover",{p_region_id:activeRegionId,p_photo_id:photoId});
+  if(result.error){console.error(result.error);toast("设置封面失败");return}
+  regionPhotos.forEach(photo=>{if(photo.region_id===activeRegionId)photo.is_cover=photo.id===photoId});
+  renderRegionDetail();
+  renderRegionLightbox();
+  toast("区域封面已更新");
+}
+async function deleteRegionPhoto(photoId){
+  if(!regionOwnerMode())return toast("当前为只读模式");
+  const photo=regionPhotos.find(item=>item.id===photoId&&item.region_id===activeRegionId);
+  if(!photo||!confirm("确认删除这张照片？\n\n照片文件与记录都会永久删除。"))return;
+  const paths=[photo.storage_path,photo.thumbnail_path].filter(Boolean);
+  const storageResult=await supabaseClient.storage.from(REGION_BUCKET).remove(paths);
+  if(storageResult.error){console.error(storageResult.error);toast("照片文件删除失败");return}
+  let result=await supabaseClient.rpc("delete_region_photo_metadata",{p_photo_id:photoId});
+  if(result.error){
+    console.error(result.error);
+    result=await supabaseClient.from("region_photos").delete().eq("id",photoId).eq("owner_id",cloudUser.id);
+  }
+  if(result.error){console.error(result.error);toast("照片记录清理失败，请重试");return}
+  regionPhotos=regionPhotos.filter(item=>item.id!==photoId);
+  const remaining=regionPhotosFor(activeRegionId);
+  if(photo.is_cover&&remaining.length&&!remaining.some(item=>item.is_cover))remaining[0].is_cover=true;
+  if(regionLightboxIndex>=remaining.length)regionLightboxIndex=Math.max(0,remaining.length-1);
+  renderRegionDetail();
+  if(remaining.length)renderRegionLightbox();else closeRegionLightbox();
+  toast("照片已删除");
 }
 function closeArchiveModal(){
   const modal=document.getElementById("archiveModal");
@@ -2780,6 +3306,7 @@ function openModal(id){
 }
 function closeModal(id){
   if(id==="archiveModal"){closeArchiveModal();return}
+  if(id==="regionLightbox"){closeRegionLightbox();return}
   document.getElementById(id).classList.remove("open");
   if(!document.querySelector(".modal.open")&&!document.getElementById("rewardOverlay").classList.contains("show"))document.body.classList.remove("modal-open");
 }
@@ -2787,13 +3314,32 @@ document.querySelectorAll(".modal").forEach(m=>m.addEventListener("click",e=>{if
 document.getElementById("archiveBody").addEventListener("click",event=>{
   const card=event.target.closest("[data-title-index]");
   if(card)equipTitleByIndex(Number(card.dataset.titleIndex));
+  const region=event.target.closest("[data-region-id]");
+  if(region)openRegionDetail(region.dataset.regionId);
+  const photo=event.target.closest("[data-region-photo-index]");
+  if(photo)openRegionLightbox(Number(photo.dataset.regionPhotoIndex));
+});
+document.getElementById("archiveBack").addEventListener("click",returnToRegionArchive);
+document.getElementById("regionPhotoInput").addEventListener("change",event=>{
+  const files=Array.from(event.target.files||[]);
+  event.target.value="";
+  processRegionFiles(files);
 });
 document.getElementById("archiveFilters").addEventListener("click",event=>{
   const filter=event.target.closest("[data-record-filter]");
   if(filter)setArchiveRecordFilter(filter.dataset.recordFilter);
 });
 document.addEventListener("keydown",event=>{
-  if(event.key==="Escape"&&document.getElementById("archiveModal").classList.contains("open"))closeArchiveModal();
+  if(event.key!=="Escape")return;
+  if(document.getElementById("regionLightbox").classList.contains("open"))closeRegionLightbox();
+  else if(document.getElementById("archiveModal").classList.contains("open"))closeArchiveModal();
+});
+document.getElementById("lightboxImageWrap").addEventListener("pointerdown",event=>{regionLightboxStartX=event.clientX});
+document.getElementById("lightboxImageWrap").addEventListener("pointerup",event=>{
+  if(regionLightboxStartX===null)return;
+  const distance=event.clientX-regionLightboxStartX;
+  regionLightboxStartX=null;
+  if(Math.abs(distance)>48)stepRegionPhoto(distance>0?-1:1);
 });
 
 let toastTimer;
