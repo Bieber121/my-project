@@ -265,6 +265,51 @@ body.modal-open{overflow:hidden}
   color:var(--muted);text-align:center
 }
 
+/* ---------- Milestones ---------- */
+.recent-milestones{
+  width:100%;margin-top:18px;padding:22px 24px;border:1px solid rgba(0,0,0,.06);border-radius:24px;
+  background:rgba(255,255,255,.78);box-shadow:var(--shadow);color:inherit;text-align:left;
+  appearance:none;-webkit-appearance:none;transition:transform .22s ease,box-shadow .22s ease
+}
+.recent-milestones:hover{transform:translateY(-2px);box-shadow:0 20px 56px rgba(0,0,0,.1)}
+.recent-milestones:active{transform:scale(.993)}
+.recent-milestones:focus-visible{outline:3px solid rgba(0,113,227,.24);outline-offset:3px}
+.recent-milestones-head{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.recent-milestones-head strong{font-size:18px;letter-spacing:-.025em}
+.recent-milestones-head span{color:var(--blue);font-size:12px;font-weight:700}
+.recent-milestones-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}
+.recent-milestone{min-width:0;padding-top:13px;border-top:1px solid var(--line)}
+.recent-milestone b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+.recent-milestone time{display:block;margin-top:5px;color:var(--muted);font-size:11px}
+.recent-milestones-empty{margin-top:14px;color:var(--muted);font-size:13px}
+.milestones-section{background:#efeff2}
+.milestone-summary{display:flex;align-items:flex-end;gap:30px;margin-top:26px}
+.milestone-summary strong{display:block;font-size:clamp(34px,5vw,56px);line-height:1;letter-spacing:-.05em}
+.milestone-summary span{display:block;margin-top:7px;color:var(--muted);font-size:12px}
+.milestone-overall{width:min(100%,420px);margin-left:auto}
+.milestone-overall-head{display:flex;justify-content:space-between;margin-bottom:9px;color:var(--muted);font-size:12px}
+.milestone-overall-track{height:7px;border-radius:999px;background:rgba(0,0,0,.08);overflow:hidden}
+.milestone-overall-fill{height:100%;width:0;border-radius:inherit;background:#333338;transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.milestone-groups{display:grid;gap:42px}
+.milestone-group-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:14px}
+.milestone-group-head h3{margin:0;font-size:23px;letter-spacing:-.035em}
+.milestone-group-head span{color:var(--muted);font-size:12px}
+.milestone-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.milestone-card{
+  min-height:240px;padding:22px;display:flex;flex-direction:column;border:1px solid rgba(0,0,0,.055);
+  border-radius:25px;background:rgba(255,255,255,.82);box-shadow:0 10px 30px rgba(0,0,0,.045)
+}
+.milestone-card.pending{opacity:.58;box-shadow:none}
+.milestone-card.hidden{background:rgba(255,255,255,.45);color:#77777c}
+.milestone-card-icon{width:38px;height:38px;display:grid;place-items:center;border-radius:13px;background:#f0f0f3;font-size:18px}
+.milestone-card.achieved .milestone-card-icon{background:#1d1d1f;color:#fff}
+.milestone-card h4{margin:22px 0 0;font-size:19px;line-height:1.15;letter-spacing:-.03em}
+.milestone-card p{margin:9px 0 0;color:var(--muted);font-size:13px;line-height:1.55}
+.milestone-card-status{margin-top:auto;padding-top:22px;display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--muted);font-size:11px}
+.milestone-card.achieved .milestone-card-status{color:#3f3f44}
+.milestone-card-progress{height:5px;margin-top:10px;border-radius:999px;background:rgba(0,0,0,.075);overflow:hidden}
+.milestone-card-progress span{display:block;height:100%;border-radius:inherit;background:#55555b}
+
 /* ---------- Main quest ---------- */
 .quest-showcase{
   position:relative;overflow:hidden;min-height:520px;
@@ -791,29 +836,45 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
 @keyframes archive-backdrop-out{to{opacity:0}}
 @keyframes archive-sheet-out{to{opacity:0;transform:translateY(12px) scale(.985)}}
 
-/* ---------- Reward Overlay ---------- */
+/* ---------- Task completion ---------- */
 .reward-overlay{
   position:fixed;inset:0;z-index:150;display:none;
   align-items:center;justify-content:center;padding:20px;
-  background:rgba(0,0,0,.76);
-  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
-  color:#fff
+  background:rgba(20,20,24,.48);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  color:var(--text)
 }
 .reward-overlay.show{display:flex}
-.reward-box{text-align:center;animation:rewardIn .52s cubic-bezier(.16,1,.3,1)}
-@keyframes rewardIn{from{opacity:0;transform:scale(.90) translateY(20px)}to{opacity:1;transform:none}}
+.reward-overlay.closing{display:flex;animation:completionBackdropOut .18s ease both}
+.reward-box{
+  width:min(100%,560px);max-height:min(88svh,760px);overflow:auto;padding:32px;border-radius:30px;
+  background:rgba(255,255,255,.96);border:1px solid rgba(255,255,255,.55);box-shadow:0 28px 90px rgba(0,0,0,.22);
+  animation:rewardIn .65s cubic-bezier(.16,1,.3,1)
+}
+@keyframes rewardIn{from{opacity:0;transform:scale(.975) translateY(16px)}to{opacity:1;transform:none}}
+@keyframes completionBackdropOut{to{opacity:0}}
 .reward-check{
-  width:82px;height:82px;border-radius:50%;margin:0 auto;
-  display:grid;place-items:center;background:#30d158;color:#fff;font-size:42px;
-  box-shadow:0 20px 60px rgba(48,209,88,.25)
+  width:46px;height:46px;border-radius:50%;display:grid;place-items:center;
+  background:#1d1d1f;color:#fff;font-size:20px
 }
-.reward-box h3{margin:26px 0 0;font-size:44px;letter-spacing:-.055em}
-.reward-values{
-  display:flex;justify-content:center;gap:28px;flex-wrap:wrap;margin-top:20px
+.completion-eyebrow{margin-top:22px;color:var(--muted);font-size:11px;font-weight:750;letter-spacing:.1em}
+.reward-box h3{margin:7px 0 0;font-size:38px;letter-spacing:-.05em}
+.completion-task-title{margin:9px 0 0;color:#4f4f54;font-size:17px;line-height:1.45}
+.completion-facts{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:25px
 }
-.reward-values div span{display:block;color:#8e8e93;font-size:12px}
-.reward-values div strong{display:block;margin-top:6px;font-size:26px}
-.reward-box button{margin-top:30px}
+.completion-fact{min-width:0;padding:14px;border-radius:17px;background:#f4f4f6}
+.completion-fact span{display:block;color:var(--muted);font-size:10px}
+.completion-fact strong{display:block;margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:15px}
+.completion-new{display:none;margin-top:18px;padding:18px;border-radius:20px;border:1px solid var(--line)}
+.completion-new.show{display:block;animation:completionItemIn .7s .12s cubic-bezier(.16,1,.3,1) both}
+@keyframes completionItemIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.completion-new-label{color:var(--muted);font-size:11px;font-weight:700}
+.completion-new-list{display:grid;gap:9px;margin-top:11px}
+.completion-new-item{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:650}
+.completion-new-item span{width:28px;height:28px;display:grid;place-items:center;border-radius:10px;background:#f1f1f4;font-size:13px}
+.completion-recorded{margin:20px 0 0;color:var(--muted);font-size:12px;text-align:center}
+.reward-box .completion-close{width:100%;min-height:48px;margin-top:18px;border:0;border-radius:999px;background:#1d1d1f;color:#fff;font-weight:720}
 
 /* ---------- Toast ---------- */
 .toast{
@@ -856,6 +917,7 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
 /* ---------- Responsive ---------- */
 @media (max-width:820px){
   .regions-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .milestone-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .japan-mini-grid{grid-template-columns:1fr}
   .japan-mini-card{min-height:360px}
   .dashboard-grid{grid-template-columns:1fr}
@@ -871,6 +933,18 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
   .region-showcase-content{padding:28px 24px}
   .region-showcase-card:hover{transform:none}
   .region-showcase-card:active{transform:scale(.985)}
+  .recent-milestones{padding:20px}
+  .recent-milestones-list{grid-template-columns:1fr;gap:9px}
+  .recent-milestone{display:flex;align-items:baseline;justify-content:space-between;gap:16px}
+  .recent-milestone b{white-space:normal}
+  .milestone-summary{align-items:flex-start;flex-wrap:wrap;gap:18px}
+  .milestone-overall{width:100%;margin:0}
+  .milestone-grid{grid-template-columns:1fr}
+  .milestone-card{min-height:220px}
+  .reward-overlay{align-items:flex-end;padding:0;background:rgba(20,20,24,.42)}
+  .reward-box{width:100%;max-height:90svh;padding:26px 20px calc(22px + var(--safe-bottom));border-radius:28px 28px 0 0}
+  .completion-facts{grid-template-columns:1fr 1fr}
+  .completion-fact:last-child{grid-column:1/-1}
   .stat-card{min-height:128px;padding:24px 20px}
   .stat-card-button::after{right:14px;top:14px}
   .archive-modal{align-items:flex-end;padding:0;background:rgba(0,0,0,.48)}
@@ -909,7 +983,9 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
   .reveal{opacity:1;transform:none}
   .final-section.final-pending :is(.final-kicker,.final-title,.final-divider,.final-desc,.final-manifesto,.final-progress-wrap,.final-condition,.final-rewards,.final-actions,.final-complete){opacity:1}
   .final-atmosphere,.final-vignette,.final-chapter{display:none}
+  .reward-box,.completion-new.show{animation:completionFade .15s ease both!important;transform:none!important}
 }
+@keyframes completionFade{from{opacity:0}to{opacity:1}}
 </style>
 </head>
 <body>
@@ -999,6 +1075,10 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
         </button>
       </div>
     </div>
+    <button type="button" class="recent-milestones" onclick="goTo('milestonesSection')" aria-label="查看全部里程碑">
+      <span class="recent-milestones-head"><strong>最近里程碑</strong><span>查看全部 →</span></span>
+      <span class="recent-milestones-list" id="recentMilestones"></span>
+    </button>
   </div>
 </section>
 
@@ -1010,6 +1090,24 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
       <p class="section-lead">真正抵达过的地方 才会出现在这里</p>
     </div>
     <div class="regions-grid" id="regionsGrid" aria-live="polite"></div>
+  </div>
+</section>
+
+<section class="section milestones-section" id="milestonesSection">
+  <div class="section-inner">
+    <div class="section-head reveal">
+      <div class="kicker">MILESTONES</div>
+      <h2>里程碑</h2>
+      <div class="milestone-summary">
+        <div><strong id="milestoneCount">0</strong><span>已记录</span></div>
+        <div><strong id="milestonePercent">0%</strong><span>完成度</span></div>
+        <div class="milestone-overall">
+          <div class="milestone-overall-head"><span>人生记录进度</span><span id="milestoneRatio">0 / 0</span></div>
+          <div class="milestone-overall-track"><div class="milestone-overall-fill" id="milestoneOverallFill"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="milestone-groups" id="milestoneGroups"></div>
   </div>
 </section>
 
@@ -1327,16 +1425,27 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
   </div>
 </div>
 
-<div class="reward-overlay" id="rewardOverlay">
-  <div class="reward-box">
+<div class="reward-overlay" id="rewardOverlay" aria-hidden="true">
+  <div class="reward-box" role="dialog" aria-modal="true" aria-labelledby="completionTitle">
     <div class="reward-check">✓</div>
-    <h3>任务完成</h3>
-    <div class="reward-values">
-      <div><span>EXP</span><strong id="rewardExp">+0</strong></div>
-      <div><span>金币</span><strong id="rewardCoins">+0</strong></div>
-      <div><span>属性</span><strong id="rewardAttr">+0</strong></div>
+    <div class="completion-eyebrow">已记录到人生档案</div>
+    <h3 id="completionTitle">任务完成</h3>
+    <p class="completion-task-title" id="completionTaskTitle"></p>
+    <div class="completion-facts">
+      <div class="completion-fact"><span>等级</span><strong id="completionRank"></strong></div>
+      <div class="completion-fact"><span>完成日期</span><strong id="completionDate"></strong></div>
+      <div class="completion-fact"><span>任务代码</span><strong id="completionCode"></strong></div>
     </div>
-    <button class="btn btn-light" onclick="closeReward()">继续</button>
+    <div class="completion-new" id="completionRegion">
+      <div class="completion-new-label">新增记录</div>
+      <div class="completion-new-list" id="completionRegionList"></div>
+    </div>
+    <div class="completion-new" id="completionMilestones">
+      <div class="completion-new-label">新增里程碑</div>
+      <div class="completion-new-list" id="completionMilestoneList"></div>
+    </div>
+    <p class="completion-recorded">这次经历已经保存</p>
+    <button class="completion-close" onclick="closeReward()">完成</button>
   </div>
 </div>
 
@@ -1362,6 +1471,7 @@ let supabaseClient=null;
 let cloudUser=null;
 let cloudSaveTimer=null;
 let cloudPublicRetryTimer=null;
+let completionCloseTimer=null;
 let cloudSyncing=false;
 let cloudSaveQueued=false;
 let suppressCloudSave=false;
@@ -1405,6 +1515,29 @@ const BASE_TASKS=[
   {id:"sss1",rank:"SSS",title:"实现高自由度跨国生活",exp:12000,coins:5200,attr:"探索",gain:6,desc:"达到你自己认可的长期自由标准。"}
 ];
 
+const MILESTONE_CATEGORIES=["探索","旅行","任务","成长","特殊经历"];
+const MILESTONE_DEFINITIONS=[
+  {id:"first-task",name:"第一次完成任务",description:"把一次计划真正变成已经发生的经历",icon:"✓",category:"任务",criterion:"完成 1 个任务",evaluate:s=>completionCountProgress(s,1)},
+  {id:"first-a-task",name:"第一次完成 A 级任务",description:"完成一次需要持续投入的重要行动",icon:"A",category:"任务",criterion:"完成 1 个 A 级任务",evaluate:s=>matchingCompletionProgress(s,row=>String(row.rank).toUpperCase()==="A")},
+  {id:"first-s-task",name:"第一次完成 S 级任务",description:"完成一次长期而高难度的计划",icon:"S",category:"任务",criterion:"完成 1 个 S 级任务",evaluate:s=>matchingCompletionProgress(s,row=>String(row.rank).toUpperCase()==="S")},
+  {id:"tasks-5",name:"完成 5 个任务",description:"持续行动开始形成清晰轨迹",icon:"05",category:"成长",criterion:"累计完成 5 个任务",evaluate:s=>completionCountProgress(s,5)},
+  {id:"tasks-10",name:"完成 10 个任务",description:"十次真实完成构成了一段稳定记录",icon:"10",category:"成长",criterion:"累计完成 10 个任务",evaluate:s=>completionCountProgress(s,10)},
+  {id:"first-solo-trip",name:"第一次独自出行",description:"独自规划并完成一次真实出行",icon:"↗",category:"旅行",criterion:"完成含独自或独立出行记录的任务",evaluate:s=>matchingCompletionProgress(s,row=>/独自|独立|一人|独行/i.test(completionSearchText(row)))},
+  {id:"first-cross-city",name:"第一次跨城市任务",description:"行动范围第一次越过熟悉的城市",icon:"⌁",category:"探索",criterion:"完成一次跨城市任务",evaluate:s=>matchingCompletionProgress(s,row=>/跨城|跨城市|其他城市|异地/i.test(completionSearchText(row)))},
+  {id:"first-overseas-task",name:"第一次海外任务",description:"第一次在海外完成一项真实计划",icon:"◎",category:"旅行",criterion:"完成一次海外相关任务",evaluate:s=>matchingCompletionProgress(s,row=>/海外|跨国|日本|法国|东京|国际/i.test(completionSearchText(row)))},
+  {id:"first-overseas-region",name:"第一次解锁海外区域",description:"地图上第一次留下海外抵达记录",icon:"○",category:"探索",criterion:"解锁 1 个海外区域",evaluate:s=>matchingRegionProgress(s,record=>isOverseasRegion(record))},
+  {id:"regions-3",name:"解锁 3 个城市",description:"走过的地方开始连接成一张地图",icon:"03",category:"探索",criterion:"解锁 3 个区域",evaluate:s=>regionCountProgress(s,3)},
+  {id:"regions-5",name:"解锁 5 个城市",description:"个人旅行档案形成更完整的轮廓",icon:"05",category:"探索",criterion:"解锁 5 个区域",evaluate:s=>regionCountProgress(s,5)},
+  {id:"first-mountain",name:"第一次登山",description:"第一次把脚步带到山径与高处",icon:"△",category:"探索",criterion:"完成一次登山相关任务",evaluate:s=>matchingCompletionProgress(s,row=>/登山|爬山|山峰|富士山/i.test(completionSearchText(row)))},
+  {id:"first-long-hike",name:"第一次完成长距离徒步",description:"用一段长距离行走记录耐心与体力",icon:"—",category:"成长",criterion:"完成一次长距离徒步任务",evaluate:s=>matchingCompletionProgress(s,row=>/长距离徒步|长途徒步|远足/i.test(completionSearchText(row)))},
+  {id:"first-dawn-start",name:"第一次凌晨出发",description:"在城市醒来之前开始一段行动",icon:"◐",category:"特殊经历",criterion:"完成一次凌晨出发任务",evaluate:s=>matchingCompletionProgress(s,row=>/凌晨|日出前|清晨出发/i.test(completionSearchText(row)))},
+  {id:"first-day-return",name:"第一次当天往返其他城市",description:"一天之内完成一次跨城市行动",icon:"↔",category:"旅行",criterion:"完成一次当天跨城市往返任务",evaluate:s=>matchingCompletionProgress(s,row=>/当天往返|当日往返/i.test(completionSearchText(row)))},
+  {id:"first-high-rank",name:"第一次完成高难度任务",description:"完成一项需要更多准备与坚持的计划",icon:"↑",category:"成长",criterion:"完成 1 个 A 级或以上任务",evaluate:s=>matchingCompletionProgress(s,row=>["A","S","SS","SSS","FINAL"].includes(String(row.rank).toUpperCase()))},
+  {id:"first-special-travel",name:"特殊旅行经历",description:"一段超出日常路径的特别旅行记录",icon:"◇",category:"特殊经历",criterion:"完成一次高难度特殊旅行任务",hidden:true,evaluate:s=>matchingCompletionProgress(s,row=>["A","S","SS","SSS","FINAL"].includes(String(row.rank).toUpperCase())&&/旅行|远征|海外|跨国|徒步|登山/i.test(completionSearchText(row)))},
+  {id:"first-japan-region",name:"第一次解锁日本区域",description:"日本从目的地变成真实抵达过的地方",icon:"日",category:"旅行",criterion:"解锁日本区域",evaluate:s=>matchingRegionProgress(s,record=>(record.regionId||regionIdForName(record.name))==="japan")},
+  {id:"first-overseas-independent",name:"第一次海外独立行动",description:"第一次独立完成一段海外行动",icon:"◉",category:"特殊经历",criterion:"完成一次海外独立行动",evaluate:s=>matchingCompletionProgress(s,row=>/海外.*独立|独立.*海外|海外独立远征/i.test(completionSearchText(row)))}
+];
+
 const DEFAULT_STATE={
   exp:0,
   coins:0,
@@ -1422,6 +1555,7 @@ const DEFAULT_STATE={
     "独立行动力":12,"社交":6,"财务":5,"探索":8
   },
   completed:[],
+  milestones:[],
   shop:[
     {name:"吃一顿想吃的",cost:1000,note:"奖励自己，但别暴食。"},
     {name:"买一个小东西",cost:3000,note:"给现实生活一点小升级。"},
@@ -1453,6 +1587,78 @@ function clone(o){return JSON.parse(JSON.stringify(o))}
 function safeNum(v,f=0){const n=Number(v);return Number.isFinite(n)?n:f}
 function escapeHtml(v){
   return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+}
+
+function completionSearchText(record){
+  return [record?.title,record?.desc,record?.rewards,record?.regionReward,record?.source].filter(Boolean).join(" ");
+}
+
+function recordTimestamp(record){
+  const value=record?.completedAt||record?.unlockedAt||record?.date||null;
+  const time=Date.parse(value||"");
+  return{value,time:Number.isFinite(time)?time:Number.POSITIVE_INFINITY};
+}
+
+function orderedRecords(records){
+  return (Array.isArray(records)?records:[]).map((record,index)=>({record,index,...recordTimestamp(record)}))
+    .sort((a,b)=>a.time-b.time||a.index-b.index);
+}
+
+function completionCountProgress(s,target){
+  const rows=orderedRecords(s.completed);
+  return{progress:Math.min(rows.length,target),target,achievedAt:rows.length>=target?rows[target-1].value:null};
+}
+
+function matchingCompletionProgress(s,predicate){
+  const matches=orderedRecords(s.completed).filter(item=>predicate(item.record));
+  return{progress:matches.length?1:0,target:1,achievedAt:matches[0]?.value||null};
+}
+
+function regionCountProgress(s,target){
+  const rows=orderedRecords(s.regionRecords);
+  return{progress:Math.min(rows.length,target),target,achievedAt:rows.length>=target?rows[target-1].value:null};
+}
+
+function matchingRegionProgress(s,predicate){
+  const matches=orderedRecords(s.regionRecords).filter(item=>predicate(item.record));
+  return{progress:matches.length?1:0,target:1,achievedAt:matches[0]?.value||null};
+}
+
+function isOverseasRegion(record){
+  const id=record?.regionId||regionIdForName(record?.name);
+  return !["hongkong","macau"].includes(id)&&/日本|法国|海外|东京|巴黎|伦敦|墨尔本|洛杉矶|纽约|japan|france|tokyo|paris|london|melbourne|angeles|york/i.test(`${record?.name||""} ${id}`);
+}
+
+function reconcileMilestones(s){
+  const existing=Array.isArray(s.milestones)?s.milestones.filter(record=>record&&record.id):[];
+  const byId=new Map(existing.map(record=>[record.id,record]));
+  const knownIds=new Set(MILESTONE_DEFINITIONS.map(definition=>definition.id));
+  const records=existing.filter(record=>!knownIds.has(record.id));
+  MILESTONE_DEFINITIONS.forEach(definition=>{
+    const evaluation=definition.evaluate(s);
+    const previous=byId.get(definition.id);
+    if(previous||evaluation.progress>=evaluation.target){
+      records.push({id:definition.id,achievedAt:previous?.achievedAt||evaluation.achievedAt||null});
+    }
+  });
+  s.milestones=records;
+  return s;
+}
+
+function milestoneViews(s=state){
+  const records=new Map((Array.isArray(s.milestones)?s.milestones:[]).map(record=>[record.id,record]));
+  return MILESTONE_DEFINITIONS.map(definition=>{
+    const evaluation=definition.evaluate(s);
+    const record=records.get(definition.id);
+    const achieved=Boolean(record)||evaluation.progress>=evaluation.target;
+    return{
+      ...definition,
+      achieved,
+      achievedAt:record?.achievedAt||evaluation.achievedAt||null,
+      progress:achieved?evaluation.target:Math.min(evaluation.progress,evaluation.target),
+      target:evaluation.target
+    };
+  });
 }
 
 function loadState(){
@@ -1550,13 +1756,13 @@ function reconcileUnlockRecords(s){
   if(!s.currentTitle||!s.titles.includes(s.currentTitle))s.currentTitle=s.titles[s.titles.length-1];
   s.titleRecords=s.titles.map(title=>{
     const existing=oldTitles.find(record=>String(record.title||"")===title)||{};
-    const achievement=[...completed].reverse().find(record=>
+    const completion=[...completed].reverse().find(record=>
       record?.titleReward===title||String(record?.rewards||"").includes(`称号「${title}」`)
     );
     return{
       title,
-      unlockedAt:existing.unlockedAt||achievement?.completedAt||achievement?.date||null,
-      source:existing.source||achievement?.title||(title==="新手旅人"?"初始称号":"历史解锁"),
+      unlockedAt:existing.unlockedAt||completion?.completedAt||completion?.date||null,
+      source:existing.source||completion?.title||(title==="新手旅人"?"初始称号":"历史解锁"),
       equipped:title===s.currentTitle
     };
   });
@@ -1564,15 +1770,15 @@ function reconcileUnlockRecords(s){
   s.regions=uniqueTextValues([...s.regions,...oldRegions.map(record=>record.name)]);
   s.regionRecords=s.regions.map(name=>{
     const existing=oldRegions.find(record=>String(record.name||"")===name)||{};
-    const achievement=[...completed].reverse().find(record=>
+    const completion=[...completed].reverse().find(record=>
       record?.regionReward===name||String(record?.rewards||"").includes(`区域「${name}」`)
     );
     return{
       ...existing,
       name,
       regionId:existing.regionId||regionIdForName(name),
-      unlockedAt:existing.unlockedAt||achievement?.completedAt||achievement?.date||null,
-      source:existing.source||achievement?.title||"历史解锁"
+      unlockedAt:existing.unlockedAt||completion?.completedAt||completion?.date||null,
+      source:existing.source||completion?.title||"历史解锁"
     };
   });
 }
@@ -1636,6 +1842,7 @@ function migrateState(s,{persist=true}={}){
 
   reconcileImportedTaskIds(s);
   reconcileUnlockRecords(s);
+  reconcileMilestones(s);
 
   if(persist)localStorage.setItem(STORAGE_KEY,JSON.stringify(s));
   return s;
@@ -2594,6 +2801,61 @@ function renderTimeline(){
   }).join("");
 }
 
+function formatMilestoneDate(value,{full=false}={}){
+  if(!value)return"日期未知";
+  const text=String(value);
+  const match=text.match(/^(\d{4})[-/.](\d{1,2})(?:[-/.](\d{1,2}))?/);
+  if(match)return full&&match[3]?`${match[1]}.${String(match[2]).padStart(2,"0")}.${String(match[3]).padStart(2,"0")}`:`${match[1]}.${String(match[2]).padStart(2,"0")}`;
+  const date=new Date(value);
+  if(Number.isNaN(date.getTime()))return"日期未知";
+  return full
+    ?`${date.getFullYear()}.${String(date.getMonth()+1).padStart(2,"0")}.${String(date.getDate()).padStart(2,"0")}`
+    :`${date.getFullYear()}.${String(date.getMonth()+1).padStart(2,"0")}`;
+}
+
+function renderMilestones(){
+  const views=milestoneViews();
+  const achieved=views.filter(item=>item.achieved);
+  const percent=views.length?Math.round(achieved.length/views.length*100):0;
+  document.getElementById("milestoneCount").textContent=achieved.length;
+  document.getElementById("milestonePercent").textContent=percent+"%";
+  document.getElementById("milestoneRatio").textContent=`${achieved.length} / ${views.length}`;
+  requestAnimationFrame(()=>document.getElementById("milestoneOverallFill").style.width=percent+"%");
+
+  const groups=document.getElementById("milestoneGroups");
+  groups.innerHTML=MILESTONE_CATEGORIES.map(category=>{
+    const entries=views.filter(item=>item.category===category);
+    const completed=entries.filter(item=>item.achieved).length;
+    return `<section class="milestone-group" aria-labelledby="milestone-${escapeHtml(category)}">
+      <div class="milestone-group-head"><h3 id="milestone-${escapeHtml(category)}">${escapeHtml(category)}</h3><span>${completed} / ${entries.length}</span></div>
+      <div class="milestone-grid">${entries.map(item=>{
+        const concealed=item.hidden&&!item.achieved;
+        const name=concealed?"尚未记录":item.name;
+        const description=concealed?"一个尚未解锁的经历":item.description;
+        const progress=Math.max(0,Math.min(item.target,item.progress));
+        const ratio=item.target?Math.round(progress/item.target*100):0;
+        return `<article class="milestone-card ${item.achieved?"achieved":"pending"}${concealed?" hidden":""}" data-milestone-id="${escapeHtml(item.id)}">
+          <div class="milestone-card-icon" aria-hidden="true">${escapeHtml(concealed?"·":item.icon)}</div>
+          <h4>${escapeHtml(name)}</h4>
+          <p>${escapeHtml(description)}</p>
+          <div class="milestone-card-status"><span>${item.achieved?"已记录":concealed?"条件暂时隐藏":escapeHtml(item.criterion)}</span><span>${item.achieved?escapeHtml(formatMilestoneDate(item.achievedAt)):`${progress} / ${item.target}`}</span></div>
+          <div class="milestone-card-progress" aria-label="进度 ${progress} / ${item.target}"><span style="width:${ratio}%"></span></div>
+        </article>`;
+      }).join("")}</div>
+    </section>`;
+  }).join("");
+
+  const recent=document.getElementById("recentMilestones");
+  const recentItems=[...achieved].sort((a,b)=>{
+    const right=Date.parse(b.achievedAt||"");
+    const left=Date.parse(a.achievedAt||"");
+    return(Number.isFinite(right)?right:0)-(Number.isFinite(left)?left:0);
+  }).slice(0,3);
+  recent.innerHTML=recentItems.length
+    ?recentItems.map(item=>`<span class="recent-milestone"><b>${escapeHtml(item.name)}</b><time>${escapeHtml(formatMilestoneDate(item.achievedAt))}</time></span>`).join("")
+    :'<span class="recent-milestones-empty">完成一次真实行动后 里程碑会出现在这里</span>';
+}
+
 let archiveView="records";
 let archiveRecordFilter="all";
 let archiveLastFocus=null;
@@ -3216,6 +3478,7 @@ function renderFinal(){
 function render(){
   renderHeader();
   renderRegions();
+  renderMilestones();
   renderAttrs();
   renderTasks();
   renderTimeline();
@@ -3243,6 +3506,16 @@ function completeTask(id){
   if(IS_PREVIEW)return;
   const t=state.tasks.find(x=>x.id===id);
   if(!t)return;
+  if(hasCompletedTask(t)){
+    state.activeTasks=state.activeTasks.filter(taskId=>taskId!==id);
+    state.tasks=state.tasks.filter(task=>task.id!==id);
+    save();
+    toast("这项任务已经记录过");
+    return;
+  }
+
+  const milestoneIdsBefore=new Set((state.milestones||[]).map(record=>record.id));
+  const regionWasUnlocked=t.regionReward?state.regions.includes(t.regionReward):false;
 
   state.exp+=safeNum(t.exp);
   state.coins+=safeNum(t.coins);
@@ -3252,7 +3525,9 @@ function completeTask(id){
   if(t.titleReward)unlockTitle(t.titleReward,t.title,completedAt);
   if(t.regionReward)unlockRegion(t.regionReward,t.title,completedAt);
 
+  const taskCode=encodeTaskCode(t);
   state.completed.push({
+    taskId:t.id,taskKey:taskCompletionKey(t),taskCode,taskRef:taskReferenceFor(t),desc:t.desc||"",
     title:t.title,rank:t.rank,date:new Date(completedAt).toLocaleDateString("zh-CN"),completedAt,
     titleReward:t.titleReward||"",regionReward:t.regionReward||"",
     rewards:`+${safeNum(t.exp)} EXP · +${safeNum(t.coins)} 金币 · ${t.attr} +${safeNum(t.gain,1)}${t.titleReward?" · 解锁称号「"+t.titleReward+"」":""}`
@@ -3260,21 +3535,70 @@ function completeTask(id){
 
   state.activeTasks=state.activeTasks.filter(taskId=>taskId!==id);
   state.tasks=state.tasks.filter(x=>x.id!==id);
-  
-  showReward(t);
+  reconcileMilestones(state);
+  const newMilestones=milestoneViews().filter(item=>item.achieved&&!milestoneIdsBefore.has(item.id));
   save();
+  showReward(t,{
+    completedAt,
+    taskCode,
+    region:!regionWasUnlocked&&t.regionReward?t.regionReward:"",
+    milestones:newMilestones
+  });
 }
 
-function showReward(t){
-  document.getElementById("rewardExp").textContent="+"+safeNum(t.exp).toLocaleString();
-  document.getElementById("rewardCoins").textContent="+"+safeNum(t.coins).toLocaleString();
-  document.getElementById("rewardAttr").textContent=`${t.attr} +${safeNum(t.gain,1)}`;
-  document.getElementById("rewardOverlay").classList.add("show");
+function taskReferenceFor(task){
+  const encoded=encodeTaskCode(task);
+  return"ZY-"+taskFingerprintHash(encoded,2166136261).slice(-8).toUpperCase();
+}
+
+function taskCompletionKey(task){
+  return stableImportedTaskId(task);
+}
+
+function hasCompletedTask(task){
+  const key=taskCompletionKey(task);
+  return state.completed.some(record=>
+    record?.taskId===task.id||record?.taskKey===key||
+    (String(record?.title||"").trim()===String(task.title||"").trim()&&String(record?.rank||"").toUpperCase()===String(task.rank||"").toUpperCase())
+  );
+}
+
+function showReward(task,{completedAt=new Date().toISOString(),taskCode="",region="",milestones=[]}={}){
+  const overlay=document.getElementById("rewardOverlay");
+  clearTimeout(completionCloseTimer);
+  document.getElementById("completionTaskTitle").textContent=task.title||"已完成任务";
+  document.getElementById("completionRank").textContent=task.rank||"—";
+  document.getElementById("completionDate").textContent=formatMilestoneDate(completedAt,{full:true});
+  document.getElementById("completionCode").textContent=task.taskRef||taskReferenceFor(task);
+  document.getElementById("completionCode").title=taskCode||encodeTaskCode(task);
+
+  const regionPanel=document.getElementById("completionRegion");
+  regionPanel.classList.toggle("show",Boolean(region));
+  document.getElementById("completionRegionList").innerHTML=region
+    ?`<div class="completion-new-item"><span>○</span>${escapeHtml(region)}</div>`:"";
+
+  const milestonePanel=document.getElementById("completionMilestones");
+  milestonePanel.classList.toggle("show",milestones.length>0);
+  document.getElementById("completionMilestoneList").innerHTML=milestones.map(item=>
+    `<div class="completion-new-item"><span>${escapeHtml(item.icon)}</span>${escapeHtml(item.name)}</div>`
+  ).join("");
+  overlay.classList.remove("closing");
+  overlay.classList.add("show");
+  overlay.setAttribute("aria-hidden","false");
   document.body.classList.add("modal-open");
+  requestAnimationFrame(()=>overlay.querySelector(".completion-close")?.focus({preventScroll:true}));
 }
 function closeReward(){
-  document.getElementById("rewardOverlay").classList.remove("show");
-  document.body.classList.remove("modal-open");
+  const overlay=document.getElementById("rewardOverlay");
+  if(!overlay.classList.contains("show"))return;
+  overlay.classList.add("closing");
+  const duration=matchMedia("(prefers-reduced-motion: reduce)").matches?0:180;
+  clearTimeout(completionCloseTimer);
+  completionCloseTimer=setTimeout(()=>{
+    overlay.classList.remove("show","closing");
+    overlay.setAttribute("aria-hidden","true");
+    if(!document.querySelector(".modal.open"))document.body.classList.remove("modal-open");
+  },duration);
 }
 
 function createTask(){
@@ -3360,6 +3684,7 @@ function importTaskCode(){
   if(IS_PREVIEW)return;
   try{
     const task=normalizeTask(decodeTaskCode(document.getElementById("taskCodeInput").value));
+    if(hasCompletedTask(task))return toast("这项任务已经记录过");
     const dup=state.tasks.some(t=>t.title===task.title&&t.rank===task.rank&&safeNum(t.exp)===safeNum(task.exp)&&String(t.desc||"")===String(task.desc||""));
     if(dup)return toast("这个任务已经存在");
     state.tasks.push(task);
@@ -3397,6 +3722,7 @@ function completeFinalTask(){
   }
   if(!confirm("确认完成 FINAL「"+f.title+"」？\n\n最终奖励不可重复领取。"))return;
 
+  const milestoneIdsBefore=new Set((state.milestones||[]).map(record=>record.id));
   f.completed=true;
   f.completedAt=new Date().toISOString();
   state.exp+=safeNum(f.exp);
@@ -3406,13 +3732,17 @@ function completeFinalTask(){
   if(f.titleReward)unlockTitle(f.titleReward,f.title,f.completedAt);
   if(f.chapterReward&&!state.chapters.includes(f.chapterReward))state.chapters.push(f.chapterReward);
 
+  const taskCode=encodeTaskCode({...f,rank:"FINAL"});
   state.completed.push({
+    taskId:f.id,taskKey:taskCompletionKey({...f,rank:"FINAL"}),taskCode,taskRef:taskReferenceFor({...f,rank:"FINAL"}),desc:f.desc||"",
     title:f.title,rank:"FINAL",date:new Date(f.completedAt).toLocaleDateString("zh-CN"),completedAt:f.completedAt,
     titleReward:f.titleReward||"",regionReward:"",
     rewards:`MAX LEVEL · MAX 金币 · ${f.attr} MAX · 解锁称号「${f.titleReward}」 · 解锁章节「${f.chapterReward}」`
   });
+  reconcileMilestones(state);
+  const newMilestones=milestoneViews().filter(item=>item.achieved&&!milestoneIdsBefore.has(item.id));
   save();
-  toast("FINAL 已完成");
+  showReward({...f,rank:"FINAL"},{completedAt:f.completedAt,taskCode,milestones:newMilestones});
 }
 
 /* ---------- Save ---------- */
@@ -3616,6 +3946,7 @@ function closeModal(id){
   if(!document.querySelector(".modal.open")&&!document.getElementById("rewardOverlay").classList.contains("show"))document.body.classList.remove("modal-open");
 }
 document.querySelectorAll(".modal").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)closeModal(m.id)}));
+document.getElementById("rewardOverlay").addEventListener("click",event=>{if(event.target===event.currentTarget)closeReward()});
 document.getElementById("archiveBody").addEventListener("click",event=>{
   const card=event.target.closest("[data-title-index]");
   if(card)equipTitleByIndex(Number(card.dataset.titleIndex));
@@ -3642,6 +3973,7 @@ document.addEventListener("keydown",event=>{
   if(event.key!=="Escape")return;
   if(document.getElementById("regionLightbox").classList.contains("open"))closeRegionLightbox();
   else if(document.getElementById("archiveModal").classList.contains("open"))closeArchiveModal();
+  else if(document.getElementById("rewardOverlay").classList.contains("show"))closeReward();
 });
 document.getElementById("lightboxImageWrap").addEventListener("pointerdown",event=>{regionLightboxStartX=event.clientX});
 document.getElementById("lightboxImageWrap").addEventListener("pointerup",event=>{

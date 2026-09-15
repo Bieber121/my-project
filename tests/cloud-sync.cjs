@@ -155,6 +155,8 @@ async function run() {
     assert.deepEqual(await stateOf(mobile), initial, 'owner startup reads life_saves');
     assert.deepEqual(await stateOf(friend), initial, 'preview startup reads public_state');
     assert.equal(await friend.evaluate(() => localStorage.getItem(STORAGE_KEY)), null, 'preview does not write owner local cache');
+    assert.equal(await friend.locator('#milestoneCount').textContent(), String(initial.milestones.length), 'preview renders synced milestone records');
+    assert.equal(await friend.locator('#milestoneGroups [data-milestone-id]').count(), await computer.locator('#milestoneGroups [data-milestone-id]').count(), 'preview exposes the same read-only milestone catalog');
 
     // Legacy arrays migrate losslessly into metadata records with historical fallbacks.
     const legacyMigration = await computer.evaluate(() => {
