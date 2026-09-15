@@ -161,15 +161,22 @@ async function run() {
       const legacy = clone(state);
       legacy.titles.push('历史称号');
       legacy.regions.push('历史区域');
+      const legacyImportedId = 'imported_1723456789000_4821';
+      legacy.tasks.push({ id: legacyImportedId, custom: true, imported: true, title: '旧随机导入任务', rank: 'C', exp: 260, coins: 90, attr: '探索', gain: 2, desc: '旧设备已接取' });
+      legacy.activeTasks.push(legacyImportedId);
       delete legacy.titleRecords;
       delete legacy.regionRecords;
       const migrated = migrateState(legacy, { persist: false });
+      const migratedTask = migrated.tasks.find(x => x.title === '旧随机导入任务');
       return {
         titles: migrated.titles,
         regions: migrated.regions,
         oldTitle: migrated.titleRecords.find(x => x.title === '历史称号'),
         oldRegion: migrated.regionRecords.find(x => x.name === '历史区域'),
-        japan: migrated.regionRecords.find(x => x.name === '日本')
+        japan: migrated.regionRecords.find(x => x.name === '日本'),
+        migratedTaskId: migratedTask.id,
+        migratedTaskActive: migrated.activeTasks.includes(migratedTask.id),
+        deterministicId: normalizeTask({ title: '旧随机导入任务', rank: 'C', exp: 260, coins: 90, attr: '探索', gain: 2, desc: '旧设备已接取' }).id
       };
     });
     assert(legacyMigration.titles.includes('历史称号'));
@@ -178,6 +185,9 @@ async function run() {
     assert.equal(legacyMigration.oldTitle.unlockedAt, null);
     assert.equal(legacyMigration.oldRegion.source, '历史解锁');
     assert.equal(legacyMigration.japan.source, '七日海外独立远征（日本）');
+    assert.match(legacyMigration.migratedTaskId, /^imported_[a-z0-9]{14}$/);
+    assert.equal(legacyMigration.migratedTaskId, legacyMigration.deterministicId);
+    assert(legacyMigration.migratedTaskActive, 'legacy activeTasks reference migrates with the imported task id');
 
     // Interactive stats are native keyboard buttons; title switching renders and syncs immediately.
     const titleEntry = computer.locator('button[onclick="openArchiveModal(\'titles\')"]');
@@ -238,6 +248,44 @@ async function run() {
     assert.equal(completed.exp, beforeCompletion.exp + 80);
     assert.equal(completed.coins, beforeCompletion.coins + 30);
     assert.equal(completed.attrs['耐力'], beforeCompletion.attrs['耐力'] + 1);
+
+    // Imported task IDs are deterministic across devices and preserve active/completed state through Realtime.
+    const importedPayload = { title: '跨设备导入任务', rank: 'C', exp: 240, coins: 88, attr: '探索', gain: 2, desc: '验证稳定任务 ID 与 activeTasks 同步' };
+    const [computerImportedId, mobileImportedId] = await Promise.all([
+      computer.evaluate(payload => normalizeTask(payload).id, importedPayload),
+      mobile.evaluate(payload => normalizeTask(payload).id, importedPayload)
+    ]);
+    assert.equal(computerImportedId, mobileImportedId, 'same task content has the same imported id on every device');
+    await mobile.evaluate(payload => {
+      document.querySelector('#taskCodeInput').value = JSON.stringify(payload);
+      importTaskCode();
+    }, importedPayload);
+    await waitState(computer, `s => s.tasks.some(x => x.id === "${mobileImportedId}")`, 'computer receives mobile imported task');
+    await mobile.evaluate(id => acceptTask(id), mobileImportedId);
+    await waitState(computer, `s => s.activeTasks.includes("${mobileImportedId}")`, 'computer receives imported active task');
+    const importedCard = computer.locator('.task-card', { hasText: '跨设备导入任务' });
+    assert((await importedCard.textContent()).includes('正在进行'));
+    assert.equal((await importedCard.locator('.action-btn').first().textContent()).trim(), '完成任务');
+    await computer.evaluate(id => completeTask(id), mobileImportedId);
+    await computer.evaluate(() => closeReward());
+    await waitState(mobile, `s => !s.tasks.some(x => x.id === "${mobileImportedId}") && !s.activeTasks.includes("${mobileImportedId}") && s.completed.some(x => x.title === "跨设备导入任务")`, 'mobile receives imported task completion');
+
+    // A cloud save from the old random-ID release is migrated and written back during bootstrap.
+    const legacyCloudId = 'imported_1723999999000_7712';
+    const legacyCloudTask = { id: legacyCloudId, custom: true, imported: true, title: '云端旧随机任务', rank: 'D', exp: 180, coins: 60, attr: '探索', gain: 1, desc: '验证启动迁移回写' };
+    database.life_saves.state.tasks.push(legacyCloudTask);
+    database.life_saves.state.activeTasks.push(legacyCloudId);
+    database.life_saves.updated_at = new Date(Date.parse(database.life_saves.updated_at) + 1000).toISOString();
+    const migrationContext = await context({ viewport: { width: 760, height: 760 } });
+    const migrationOwner = await open(migrationContext, base);
+    const stableCloudId = await migrationOwner.evaluate(() => state.tasks.find(task => task.title === '云端旧随机任务').id);
+    assert.match(stableCloudId, /^imported_[a-z0-9]{14}$/);
+    await waitState(computer, `s => s.activeTasks.includes("${stableCloudId}")`, 'bootstrap writes migrated imported id back to cloud');
+    assert(database.life_saves.state.activeTasks.includes(stableCloudId));
+    assert(!database.life_saves.state.activeTasks.includes(legacyCloudId));
+    await migrationOwner.evaluate(id => deleteTask(id), stableCloudId);
+    await waitState(computer, `s => !s.tasks.some(x => x.id === "${stableCloudId}") && !s.activeTasks.includes("${stableCloudId}")`, 'migrated task cleanup reaches cloud');
+    await waitState(mobile, `s => !s.tasks.some(x => x.id === "${stableCloudId}") && !s.activeTasks.includes("${stableCloudId}")`, 'migrated task cleanup syncs');
 
     // Public preview remains consistent after refresh.
     await friend.reload();
@@ -370,6 +418,7 @@ async function run() {
 
     console.log('PASS A: owner-to-owner accepted task Realtime sync');
     console.log('PASS B: completion sync updates EXP, coins, attributes, records and task status');
+    console.log('PASS imported task stable ID, legacy migration, active UI and cross-device completion');
     console.log('PASS C: preview Realtime + four-second fallback polling + refresh persistence');
     console.log('PASS D: reopened owner prioritizes life_saves over stale localStorage');
     console.log('PASS conflict protection, lifecycle refresh, unified save path and preview read-only guards');

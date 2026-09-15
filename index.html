@@ -1396,6 +1396,67 @@ function uniqueTextValues(values){
   return [...new Set((Array.isArray(values)?values:[]).map(value=>String(value||"").trim()).filter(Boolean))];
 }
 
+function importedTaskFields(task){
+  const rank=String(task?.rank||"E").toUpperCase();
+  return{
+    title:String(task?.title||"").trim(),
+    rank:RANKS.includes(rank)?rank:"E",
+    exp:Math.max(1,safeNum(task?.exp,100)),
+    coins:Math.max(0,safeNum(task?.coins,0)),
+    attr:String(task?.attr||"探索"),
+    gain:Math.max(1,safeNum(task?.gain,1)),
+    desc:String(task?.desc||"").trim(),
+    titleReward:String(task?.titleReward||"").trim(),
+    regionReward:String(task?.regionReward||"").trim()
+  };
+}
+
+function taskFingerprintHash(text,seed){
+  let hash=seed>>>0;
+  for(let index=0;index<text.length;index++){
+    hash^=text.charCodeAt(index);
+    hash=Math.imul(hash,16777619);
+  }
+  return(hash>>>0).toString(36).padStart(7,"0");
+}
+
+function stableImportedTaskId(task){
+  const canonical=JSON.stringify({v:1,...importedTaskFields(task)});
+  return`imported_${taskFingerprintHash(canonical,2166136261)}${taskFingerprintHash(canonical,2654435761)}`;
+}
+
+function needsImportedTaskIdMigration(s){
+  return Array.isArray(s?.tasks)&&s.tasks.some(task=>{
+    if(!task||typeof task!=="object")return false;
+    const id=String(task.id||"");
+    return(task.imported||/^imported_\d+_\d+$/.test(id))&&id!==stableImportedTaskId(task);
+  });
+}
+
+function reconcileImportedTaskIds(s){
+  const idMap=new Map();
+  const tasks=[];
+  const seen=new Set();
+  for(const source of s.tasks){
+    if(!source||typeof source!=="object")continue;
+    const task={...source};
+    const oldId=String(task.id||"");
+    if(task.imported||/^imported_\d+_\d+$/.test(oldId)){
+      task.custom=true;
+      task.imported=true;
+      task.id=stableImportedTaskId(task);
+      if(oldId)idMap.set(oldId,task.id);
+    }
+    if(!task.id||seen.has(task.id))continue;
+    seen.add(task.id);
+    tasks.push(task);
+  }
+  s.tasks=tasks;
+  const validIds=new Set(tasks.map(task=>task.id));
+  s.activeTasks=[...new Set(s.activeTasks.map(id=>idMap.get(String(id))||String(id)).filter(id=>validIds.has(id)))];
+  s.migrations.stableImportedTaskIds=true;
+}
+
 function regionIdForName(name){
   const known={"日本":"japan","香港":"hongkong","澳门":"macau","法国":"france"};
   name=String(name||"").trim();
@@ -1502,6 +1563,7 @@ function migrateState(s,{persist=true}={}){
     s.finalTask.conditionStatus=(s.finalTask.conditions||[]).map((_,i)=>Boolean(s.finalTask.conditionStatus[i]));
   }
 
+  reconcileImportedTaskIds(s);
   reconcileUnlockRecords(s);
 
   if(persist)localStorage.setItem(STORAGE_KEY,JSON.stringify(s));
@@ -1824,13 +1886,18 @@ async function bootstrapCloudForUser(){
   try{
     const data=await fetchCloudRow("life_saves","user_id",cloudUser.id);
     if(data?.state){
+      const importedIdMigrationNeeded=needsImportedTaskIdMigration(data.state);
       applyRemoteState(data,{force:true});
       setCloudStatus("已同步","ok");
-      try{
-        await publishPublicState(state,data.updated_at);
-      }catch(publicError){
-        console.error("Public state bootstrap failed",publicError);
-        schedulePublicStateRetry();
+      if(importedIdMigrationNeeded){
+        await pushCloudState();
+      }else{
+        try{
+          await publishPublicState(state,data.updated_at);
+        }catch(publicError){
+          console.error("Public state bootstrap failed",publicError);
+          schedulePublicStateRetry();
+        }
       }
     }else{
       // First login on the first device: upload the current local save.
@@ -3101,6 +3168,7 @@ function createTask(){
 function deleteTask(id){
   if(IS_PREVIEW)return;
   state.tasks=state.tasks.filter(t=>t.id!==id);
+  state.activeTasks=state.activeTasks.filter(taskId=>taskId!==id);
   save();toast("已删除任务");
 }
 function buyItem(i){
@@ -3137,20 +3205,13 @@ function decodeTaskCode(raw){
 }
 function normalizeTask(obj){
   if(!obj||typeof obj!=="object")throw new Error("任务码无效");
-  const rank=String(obj.rank||"E").toUpperCase();
-  if(!RANKS.includes(rank))throw new Error("任务等级无效");
-  const title=String(obj.title||"").trim();
-  if(!title)throw new Error("任务名称为空");
+  const fields=importedTaskFields(obj);
+  if(!RANKS.includes(String(obj.rank||"E").toUpperCase()))throw new Error("任务等级无效");
+  if(!fields.title)throw new Error("任务名称为空");
   return{
-    id:"imported_"+Date.now()+"_"+Math.floor(Math.random()*9999),
-    custom:true,imported:true,title,rank,
-    exp:Math.max(1,safeNum(obj.exp,100)),
-    coins:Math.max(0,safeNum(obj.coins,0)),
-    attr:String(obj.attr||"探索"),
-    gain:Math.max(1,safeNum(obj.gain,1)),
-    desc:String(obj.desc||"").trim(),
-    titleReward:String(obj.titleReward||"").trim(),
-    regionReward:String(obj.regionReward||"").trim()
+    id:stableImportedTaskId(fields),
+    custom:true,imported:true,
+    ...fields
   }
 }
 async function copyTaskCode(id){
