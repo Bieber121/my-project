@@ -17,7 +17,6 @@
   --blue:#0071e3;
   --blue-2:#2997ff;
   --green:#30d158;
-  --gold:#c49a43;
   --red:#ff453a;
   --black:#000;
   --shadow:0 16px 50px rgba(0,0,0,.08);
@@ -192,6 +191,7 @@ body.modal-open{overflow:hidden}
 .stats-grid{
   display:grid;grid-template-columns:repeat(2,1fr);gap:18px
 }
+.stat-card-wide{grid-column:1/-1}
 .stat-card{padding:28px}
 .stat-card .value{font-size:38px;font-weight:780;letter-spacing:-.05em;margin-top:8px}
 .stat-card .meta{font-size:12px;color:var(--muted);margin-top:6px}
@@ -425,18 +425,6 @@ body.modal-open{overflow:hidden}
 .timeline-title{font-size:28px;font-weight:760;letter-spacing:-.04em}
 .timeline-sub{margin-top:8px;color:var(--muted);line-height:1.6;font-size:14px}
 
-/* ---------- Shop ---------- */
-.shop-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.shop-card{
-  padding:24px;border-radius:26px;background:#fff;box-shadow:var(--shadow)
-}
-.shop-card h3{margin:0;font-size:22px;letter-spacing:-.035em}
-.shop-card p{color:var(--muted);font-size:13px;line-height:1.55;min-height:60px}
-.shop-price{font-size:24px;font-weight:780;letter-spacing:-.04em;margin:18px 0}
-.shop-card button{
-  width:100%;border:0;border-radius:999px;padding:10px;background:#1d1d1f;color:#fff;font-weight:700
-}
-
 /* ---------- FINAL ---------- */
 .final-section{
   min-height:112svh;background:#020202;color:#fff;padding:132px 22px 130px;
@@ -580,7 +568,7 @@ body.modal-open{overflow:hidden}
   content:"";position:absolute;left:0;right:0;top:0;height:1px;
   background:linear-gradient(90deg,transparent,rgba(229,194,107,.45),transparent)
 }
-.final-reward.major{grid-column:span 2}
+.final-reward.major{grid-column:span 3}
 .final-reward.minor{grid-column:span 3}
 .final-reward span{
   display:block;color:#68686d;font-size:10px;font-weight:750;letter-spacing:.10em
@@ -589,7 +577,7 @@ body.modal-open{overflow:hidden}
   display:block;margin-top:16px;font-size:clamp(19px,2.5vw,30px);
   line-height:1;letter-spacing:-.045em;color:#fff
 }
-.final-reward strong.gold{
+.final-reward strong.accent{
   color:#eed184;text-shadow:0 0 26px rgba(226,188,96,.12)
 }
 .final-actions{margin-top:40px}
@@ -631,7 +619,7 @@ body.modal-open{overflow:hidden}
   transform:translateX(-50%);
   width:min(calc(100% - 28px),620px);
   padding:7px;
-  display:grid;grid-template-columns:repeat(5,1fr);gap:4px;
+  display:grid;grid-template-columns:repeat(4,1fr);gap:4px;
   background:rgba(250,250,252,.80);
   border:1px solid rgba(0,0,0,.08);
   backdrop-filter:blur(26px) saturate(160%);
@@ -923,7 +911,6 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
   .dashboard-grid{grid-template-columns:1fr}
   .stats-grid{grid-template-columns:repeat(4,1fr)}
   .attr-grid{grid-template-columns:repeat(2,1fr)}
-  .shop-grid{grid-template-columns:1fr 1fr}
 }
 @media (max-width:620px){
   .section{padding:88px 16px}
@@ -971,7 +958,6 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
   .hero-status{grid-template-columns:repeat(2,1fr);gap:20px}
   .stats-grid{grid-template-columns:repeat(2,1fr)}
   .task-list{grid-template-columns:1fr}
-  .shop-grid{grid-template-columns:1fr}
   .timeline-item{grid-template-columns:1fr;gap:8px}
   .quest-showcase{min-height:520px;padding:28px}
   .final-rewards{grid-template-columns:1fr 1fr}
@@ -1053,12 +1039,7 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
       </div>
 
       <div class="stats-grid">
-        <div class="panel stat-card reveal reveal-delay-1">
-          <div class="panel-label">金币</div>
-          <div class="value" id="coinValue">0</div>
-          <div class="meta">现实奖励货币</div>
-        </div>
-        <button type="button" class="panel stat-card stat-card-button reveal reveal-delay-1" onclick="openArchiveModal('records')" aria-haspopup="dialog" aria-controls="archiveModal">
+        <button type="button" class="panel stat-card stat-card-button stat-card-wide reveal reveal-delay-1" onclick="openArchiveModal('records')" aria-haspopup="dialog" aria-controls="archiveModal">
           <div class="panel-label">战绩</div>
           <div class="value" id="recordValue">0</div>
           <div class="meta">已完成任务</div>
@@ -1216,17 +1197,6 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
   </div>
 </section>
 
-<section class="section" id="shopSection">
-  <div class="section-inner">
-    <div class="section-head reveal">
-      <div class="kicker">REWARDS</div>
-      <h2>努力也应该有回报</h2>
-      <p class="section-lead">金币没有意义，除非它能兑换真实世界里的快乐。</p>
-    </div>
-    <div class="shop-grid" id="shopGrid"></div>
-  </div>
-</section>
-
 <section class="final-section" id="finalSection">
   <div class="final-atmosphere" aria-hidden="true">
     <div class="final-aura"></div>
@@ -1276,10 +1246,6 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
     <svg viewBox="0 0 24 24" fill="none"><path d="m12 3 2.5 5.2L20 9l-4 4 1 5.7-5-2.8-5 2.8 1-5.7-4-4 5.5-.8L12 3Z" stroke-width="1.7" stroke-linejoin="round"/></svg>
     战绩
   </button>
-  <button class="nav-item" data-target="shopSection" onclick="goTo('shopSection')">
-    <svg viewBox="0 0 24 24" fill="none"><path d="M4 8h16l-1 12H5L4 8Zm3 0a5 5 0 0 1 10 0" stroke-width="1.8" stroke-linejoin="round"/></svg>
-    商店
-  </button>
   <button class="nav-item" data-target="finalSection" onclick="goTo('finalSection')">
     <svg viewBox="0 0 24 24" fill="none"><path d="M12 3v18M5 7h14M7 17h10" stroke-width="1.8" stroke-linecap="round"/></svg>
     FINAL
@@ -1302,17 +1268,14 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
       <input id="taskExp" type="number" min="1" value="120" placeholder="EXP">
     </div>
     <div class="form-grid">
-      <input id="taskCoins" type="number" min="0" value="60" placeholder="金币">
       <select id="taskAttr">
         <option>体能</option><option>耐力</option><option>英语</option><option>日语</option>
         <option>独立行动力</option><option>社交</option><option>财务</option><option>探索</option>
         <option>陌生环境适应力</option><option>旅行规划能力</option><option>现实胆量</option><option>人生故事</option>
       </select>
-    </div>
-    <div class="form-grid">
       <input id="taskGain" type="number" min="1" value="1" placeholder="属性增加">
-      <input id="taskTitleReward" placeholder="解锁称号（可选）">
     </div>
+    <input id="taskTitleReward" placeholder="解锁称号（可选）">
     <textarea id="taskDesc" placeholder="任务描述 / 限制 / 备注"></textarea>
     <div class="sheet-actions">
       <button class="btn btn-light" style="background:#efeff2" onclick="closeTaskModal()">取消</button>
@@ -1504,15 +1467,15 @@ const RANKS=["E","D","C","B","A","S","SS","SSS"];
 const RANK_THRESHOLDS={E:0,D:300,C:900,B:2200,A:5000,S:9000,SS:15000,SSS:25000};
 
 const BASE_TASKS=[
-  {id:"e1",rank:"E",title:"跑步机 20 分钟",exp:80,coins:30,attr:"耐力",gain:1,desc:"完成即可，不要求速度。"},
-  {id:"e2",rank:"E",title:"背 15 个英语单词",exp:60,coins:25,attr:"英语",gain:1,desc:"哪怕只花 10 分钟，也算推进。"},
-  {id:"d1",rank:"D",title:"独自探索一个没去过的城区",exp:180,coins:90,attr:"探索",gain:1,desc:"完成路线并拍一张照片。"},
-  {id:"d2",rank:"D",title:"做一次 30 分钟耐力训练",exp:160,coins:80,attr:"体能",gain:1,desc:"跑步机、椭圆机、单车都可以。"},
-  {id:"c1",rank:"C",title:"下班后跨城住一晚",exp:360,coins:160,attr:"独立行动力",gain:2,desc:"尽量不消耗年假。"},
-  {id:"b1",rank:"B",title:"参加一次正式大众比赛",exp:780,coins:320,attr:"体能",gain:2,desc:"目标不是成绩，而是真正完赛。"},
-  {id:"s1",rank:"S",title:"取得海外合法工作机会",exp:3200,coins:1500,attr:"独立行动力",gain:4,desc:"以真实 offer / COE / 工签推进为准。"},
-  {id:"ss1",rank:"SS",title:"完成跨国迁移并稳定生活 90 天",exp:6500,coins:2600,attr:"独立行动力",gain:5,desc:"建立稳定住所、收入和日常系统。"},
-  {id:"sss1",rank:"SSS",title:"实现高自由度跨国生活",exp:12000,coins:5200,attr:"探索",gain:6,desc:"达到你自己认可的长期自由标准。"}
+  {id:"e1",rank:"E",title:"跑步机 20 分钟",exp:80,attr:"耐力",gain:1,desc:"完成即可，不要求速度。"},
+  {id:"e2",rank:"E",title:"背 15 个英语单词",exp:60,attr:"英语",gain:1,desc:"哪怕只花 10 分钟，也算推进。"},
+  {id:"d1",rank:"D",title:"独自探索一个没去过的城区",exp:180,attr:"探索",gain:1,desc:"完成路线并拍一张照片。"},
+  {id:"d2",rank:"D",title:"做一次 30 分钟耐力训练",exp:160,attr:"体能",gain:1,desc:"跑步机、椭圆机、单车都可以。"},
+  {id:"c1",rank:"C",title:"下班后跨城住一晚",exp:360,attr:"独立行动力",gain:2,desc:"尽量不消耗年假。"},
+  {id:"b1",rank:"B",title:"参加一次正式大众比赛",exp:780,attr:"体能",gain:2,desc:"目标不是成绩，而是真正完赛。"},
+  {id:"s1",rank:"S",title:"取得海外合法工作机会",exp:3200,attr:"独立行动力",gain:4,desc:"以真实 offer / COE / 工签推进为准。"},
+  {id:"ss1",rank:"SS",title:"完成跨国迁移并稳定生活 90 天",exp:6500,attr:"独立行动力",gain:5,desc:"建立稳定住所、收入和日常系统。"},
+  {id:"sss1",rank:"SSS",title:"实现高自由度跨国生活",exp:12000,attr:"探索",gain:6,desc:"达到你自己认可的长期自由标准。"}
 ];
 
 const MILESTONE_CATEGORIES=["探索","旅行","任务","成长","特殊经历"];
@@ -1522,25 +1485,24 @@ const MILESTONE_DEFINITIONS=[
   {id:"first-s-task",name:"第一次完成 S 级任务",description:"完成一次长期而高难度的计划",icon:"S",category:"任务",criterion:"完成 1 个 S 级任务",evaluate:s=>matchingCompletionProgress(s,row=>String(row.rank).toUpperCase()==="S")},
   {id:"tasks-5",name:"完成 5 个任务",description:"持续行动开始形成清晰轨迹",icon:"05",category:"成长",criterion:"累计完成 5 个任务",evaluate:s=>completionCountProgress(s,5)},
   {id:"tasks-10",name:"完成 10 个任务",description:"十次真实完成构成了一段稳定记录",icon:"10",category:"成长",criterion:"累计完成 10 个任务",evaluate:s=>completionCountProgress(s,10)},
-  {id:"first-solo-trip",name:"第一次独自出行",description:"独自规划并完成一次真实出行",icon:"↗",category:"旅行",criterion:"完成含独自或独立出行记录的任务",evaluate:s=>matchingCompletionProgress(s,row=>/独自|独立|一人|独行/i.test(completionSearchText(row)))},
-  {id:"first-cross-city",name:"第一次跨城市任务",description:"行动范围第一次越过熟悉的城市",icon:"⌁",category:"探索",criterion:"完成一次跨城市任务",evaluate:s=>matchingCompletionProgress(s,row=>/跨城|跨城市|其他城市|异地/i.test(completionSearchText(row)))},
-  {id:"first-overseas-task",name:"第一次海外任务",description:"第一次在海外完成一项真实计划",icon:"◎",category:"旅行",criterion:"完成一次海外相关任务",evaluate:s=>matchingCompletionProgress(s,row=>/海外|跨国|日本|法国|东京|国际/i.test(completionSearchText(row)))},
+  {id:"first-solo-trip",name:"第一次独自出行",description:"独自规划并完成一次真实出行",icon:"↗",category:"旅行",criterion:"完成含独自或独立出行记录的任务",evaluate:s=>matchingCompletionProgress(s,row=>completionHasTag(row,"solo-trip")||/独自|独立|一人|独行/i.test(completionSearchText(row)))},
+  {id:"first-cross-city",name:"第一次跨城市任务",description:"行动范围第一次越过熟悉的城市",icon:"⌁",category:"探索",criterion:"完成一次跨城市任务",evaluate:s=>matchingCompletionProgress(s,row=>completionHasTag(row,"cross-city")||hasTravelRoute(row)||/跨城|跨城市|其他城市|异地/i.test(completionSearchText(row)))},
+  {id:"first-overseas-task",name:"第一次海外任务",description:"第一次在海外完成一项真实计划",icon:"◎",category:"旅行",criterion:"完成一次海外相关任务",evaluate:s=>matchingCompletionProgress(s,row=>completionHasTag(row,"overseas")||/海外|跨国|日本|法国|东京|国际/i.test(completionSearchText(row)))},
   {id:"first-overseas-region",name:"第一次解锁海外区域",description:"地图上第一次留下海外抵达记录",icon:"○",category:"探索",criterion:"解锁 1 个海外区域",evaluate:s=>matchingRegionProgress(s,record=>isOverseasRegion(record))},
   {id:"regions-3",name:"解锁 3 个城市",description:"走过的地方开始连接成一张地图",icon:"03",category:"探索",criterion:"解锁 3 个区域",evaluate:s=>regionCountProgress(s,3)},
   {id:"regions-5",name:"解锁 5 个城市",description:"个人旅行档案形成更完整的轮廓",icon:"05",category:"探索",criterion:"解锁 5 个区域",evaluate:s=>regionCountProgress(s,5)},
-  {id:"first-mountain",name:"第一次登山",description:"第一次把脚步带到山径与高处",icon:"△",category:"探索",criterion:"完成一次登山相关任务",evaluate:s=>matchingCompletionProgress(s,row=>/登山|爬山|山峰|富士山/i.test(completionSearchText(row)))},
-  {id:"first-long-hike",name:"第一次完成长距离徒步",description:"用一段长距离行走记录耐心与体力",icon:"—",category:"成长",criterion:"完成一次长距离徒步任务",evaluate:s=>matchingCompletionProgress(s,row=>/长距离徒步|长途徒步|远足/i.test(completionSearchText(row)))},
-  {id:"first-dawn-start",name:"第一次凌晨出发",description:"在城市醒来之前开始一段行动",icon:"◐",category:"特殊经历",criterion:"完成一次凌晨出发任务",evaluate:s=>matchingCompletionProgress(s,row=>/凌晨|日出前|清晨出发/i.test(completionSearchText(row)))},
-  {id:"first-day-return",name:"第一次当天往返其他城市",description:"一天之内完成一次跨城市行动",icon:"↔",category:"旅行",criterion:"完成一次当天跨城市往返任务",evaluate:s=>matchingCompletionProgress(s,row=>/当天往返|当日往返/i.test(completionSearchText(row)))},
+  {id:"first-mountain",name:"第一次登山",description:"第一次把脚步带到山径与高处",icon:"△",category:"探索",criterion:"完成一次登山相关任务",evaluate:s=>matchingCompletionProgress(s,row=>completionHasTag(row,"mountain")||/登山|爬山|山峰|富士山/i.test(completionSearchText(row)))},
+  {id:"first-long-hike",name:"第一次完成长距离徒步",description:"用一段长距离行走记录耐心与体力",icon:"—",category:"成长",criterion:"完成一次长距离徒步任务",evaluate:s=>matchingCompletionProgress(s,row=>completionHasTag(row,"long-hike")||/长距离徒步|长途徒步|远足/i.test(completionSearchText(row)))},
+  {id:"first-dawn-start",name:"第一次凌晨出发",description:"在城市醒来之前开始一段行动",icon:"◐",category:"特殊经历",criterion:"完成一次凌晨出发任务",evaluate:s=>matchingCompletionProgress(s,row=>completionHasTag(row,"dawn-start")||/凌晨|日出前|清晨出发/i.test(completionSearchText(row)))},
+  {id:"first-day-return",name:"第一次当天往返其他城市",description:"一天之内完成一次跨城市行动",icon:"↔",category:"旅行",criterion:"完成一次当天跨城市往返任务",evaluate:s=>matchingCompletionProgress(s,row=>completionHasTag(row,"day-return")||/当天往返|当日往返/i.test(completionSearchText(row)))},
   {id:"first-high-rank",name:"第一次完成高难度任务",description:"完成一项需要更多准备与坚持的计划",icon:"↑",category:"成长",criterion:"完成 1 个 A 级或以上任务",evaluate:s=>matchingCompletionProgress(s,row=>["A","S","SS","SSS","FINAL"].includes(String(row.rank).toUpperCase()))},
-  {id:"first-special-travel",name:"特殊旅行经历",description:"一段超出日常路径的特别旅行记录",icon:"◇",category:"特殊经历",criterion:"完成一次高难度特殊旅行任务",hidden:true,evaluate:s=>matchingCompletionProgress(s,row=>["A","S","SS","SSS","FINAL"].includes(String(row.rank).toUpperCase())&&/旅行|远征|海外|跨国|徒步|登山/i.test(completionSearchText(row)))},
+  {id:"first-special-travel",name:"特殊旅行经历",description:"一段超出日常路径的特别旅行记录",icon:"◇",category:"特殊经历",criterion:"完成一次高难度特殊旅行任务",hidden:true,evaluate:s=>matchingCompletionProgress(s,row=>["A","S","SS","SSS","FINAL"].includes(String(row.rank).toUpperCase())&&(completionHasTag(row,"special-travel")||/旅行|远征|海外|跨国|徒步|登山/i.test(completionSearchText(row))))},
   {id:"first-japan-region",name:"第一次解锁日本区域",description:"日本从目的地变成真实抵达过的地方",icon:"日",category:"旅行",criterion:"解锁日本区域",evaluate:s=>matchingRegionProgress(s,record=>(record.regionId||regionIdForName(record.name))==="japan")},
-  {id:"first-overseas-independent",name:"第一次海外独立行动",description:"第一次独立完成一段海外行动",icon:"◉",category:"特殊经历",criterion:"完成一次海外独立行动",evaluate:s=>matchingCompletionProgress(s,row=>/海外.*独立|独立.*海外|海外独立远征/i.test(completionSearchText(row)))}
+  {id:"first-overseas-independent",name:"第一次海外独立行动",description:"第一次独立完成一段海外行动",icon:"◉",category:"特殊经历",criterion:"完成一次海外独立行动",evaluate:s=>matchingCompletionProgress(s,row=>completionHasTag(row,"overseas-independent")||/海外.*独立|独立.*海外|海外独立远征/i.test(completionSearchText(row)))}
 ];
 
 const DEFAULT_STATE={
   exp:0,
-  coins:0,
   titles:["新手旅人"],
   titleRecords:[{title:"新手旅人",unlockedAt:null,source:"初始称号",equipped:true}],
   currentTitle:"新手旅人",
@@ -1556,18 +1518,11 @@ const DEFAULT_STATE={
   },
   completed:[],
   milestones:[],
-  shop:[
-    {name:"吃一顿想吃的",cost:1000,note:"奖励自己，但别暴食。"},
-    {name:"买一个小东西",cost:3000,note:"给现实生活一点小升级。"},
-    {name:"周边城市旅行",cost:8000,note:"一次真正的现实支线。"},
-    {name:"海外支线基金",cost:20000,note:"为更大的任务积累资源。"}
-  ],
   finalTask:{
     id:"final_escape_cn",
     title:"逃离中国",
     completed:false,
     exp:999999999,
-    coins:999999999,
     attr:"独立行动力",
     gain:20,
     titleReward:"自由迁徙者",
@@ -1590,7 +1545,17 @@ function escapeHtml(v){
 }
 
 function completionSearchText(record){
-  return [record?.title,record?.desc,record?.rewards,record?.regionReward,record?.source].filter(Boolean).join(" ");
+  const places=Array.isArray(record?.places)?record.places.join(" "):record?.places;
+  const tags=Array.isArray(record?.milestoneTags)?record.milestoneTags.join(" "):"";
+  return [record?.title,record?.desc,record?.rewards,record?.regionReward,record?.source,record?.route,places,tags].filter(Boolean).join(" ");
+}
+
+function completionHasTag(record,tag){
+  return Array.isArray(record?.milestoneTags)&&record.milestoneTags.includes(tag);
+}
+
+function hasTravelRoute(record){
+  return /\S+\s*(?:→|⟶|->|至)\s*\S+/.test([record?.route,record?.title,record?.desc].filter(Boolean).join(" "));
 }
 
 function recordTimestamp(record){
@@ -1673,13 +1638,37 @@ function uniqueTextValues(values){
   return [...new Set((Array.isArray(values)?values:[]).map(value=>String(value||"").trim()).filter(Boolean))];
 }
 
+const LEGACY_MONEY_KEYS=new Set(["coin","coins","coinbalance","gold","currency","balance","rewardcoins","coinreward"]);
+function withoutLegacyMoneyFields(record){
+  if(!record||typeof record!=="object"||Array.isArray(record))return record;
+  const clean={...record};
+  Object.keys(clean).forEach(key=>{if(LEGACY_MONEY_KEYS.has(key.toLowerCase()))delete clean[key]});
+  if(clean.reward&&typeof clean.reward==="object"&&!Array.isArray(clean.reward)){
+    clean.reward=withoutLegacyMoneyFields(clean.reward);
+    if(!Object.keys(clean.reward).length)delete clean.reward;
+  }
+  if(typeof clean.rewards==="string"){
+    clean.rewards=clean.rewards.split("·").map(part=>part.trim()).filter(part=>part&&!/(?:金币|coins?|gold|currency|balance|兑换|余额)/i.test(part)).join(" · ");
+  }
+  return clean;
+}
+
+function needsLegacyMoneyCleanup(value){
+  if(!value||typeof value!=="object")return false;
+  if(Array.isArray(value))return value.some(needsLegacyMoneyCleanup);
+  return Object.entries(value).some(([key,item])=>
+    LEGACY_MONEY_KEYS.has(key.toLowerCase())||key.toLowerCase()==="shop"||
+    (key==="rewards"&&typeof item==="string"&&/(?:金币|coins?|gold|currency|balance|兑换|余额)/i.test(item))||
+    needsLegacyMoneyCleanup(item)
+  );
+}
+
 function importedTaskFields(task){
   const rank=String(task?.rank||"E").toUpperCase();
   return{
     title:String(task?.title||"").trim(),
     rank:RANKS.includes(rank)?rank:"E",
     exp:Math.max(1,safeNum(task?.exp,100)),
-    coins:Math.max(0,safeNum(task?.coins,0)),
     attr:String(task?.attr||"探索"),
     gain:Math.max(1,safeNum(task?.gain,1)),
     desc:String(task?.desc||"").trim(),
@@ -1708,6 +1697,23 @@ function needsImportedTaskIdMigration(s){
     const id=String(task.id||"");
     return(task.imported||/^imported_\d+_\d+$/.test(id))&&id!==stableImportedTaskId(task);
   });
+}
+
+function needsHistoricalTravelMetadata(s){
+  return !s?.migrations?.historicalTravelMetadataV1;
+}
+
+function reconcileHistoricalTravelMetadata(s){
+  const japanExpedition=s.completed.find(record=>record?.title==="七日海外独立远征（日本）");
+  if(japanExpedition){
+    if(!japanExpedition.route)japanExpedition.route="上海 → 东京";
+    japanExpedition.places=uniqueTextValues([...(Array.isArray(japanExpedition.places)?japanExpedition.places:[]),"富士山"]);
+    japanExpedition.milestoneTags=uniqueTextValues([
+      ...(Array.isArray(japanExpedition.milestoneTags)?japanExpedition.milestoneTags:[]),
+      "solo-trip","cross-city","overseas","mountain","special-travel","overseas-independent"
+    ]);
+  }
+  s.migrations.historicalTravelMetadataV1=true;
 }
 
 function reconcileImportedTaskIds(s){
@@ -1785,20 +1791,19 @@ function reconcileUnlockRecords(s){
 
 function migrateState(s,{persist=true}={}){
   s=s&&typeof s==="object"?s:{};
+  s=withoutLegacyMoneyFields(s);
+  delete s.shop;
   s.exp=safeNum(s.exp,0);
-  s.coins=safeNum(s.coins,0);
   s.titles=Array.isArray(s.titles)?s.titles:["新手旅人"];
   if(!s.titles.length)s.titles=["新手旅人"];
   s.currentTitle=s.currentTitle||s.titles[s.titles.length-1]||"新手旅人";
   s.regions=Array.isArray(s.regions)?s.regions:[];
   s.chapters=Array.isArray(s.chapters)?s.chapters:["现实世界篇"];
   s.selectedRank=RANKS.includes(s.selectedRank)?s.selectedRank:"E";
-  s.tasks=Array.isArray(s.tasks)?s.tasks:clone(BASE_TASKS);
   s.activeTasks=Array.isArray(s.activeTasks)?s.activeTasks:[];
   s.attrs=s.attrs&&typeof s.attrs==="object"?s.attrs:clone(DEFAULT_STATE.attrs);
-  s.completed=Array.isArray(s.completed)?s.completed:[];
-  s.shop=Array.isArray(s.shop)?s.shop:clone(DEFAULT_STATE.shop);
-  s.shop=s.shop.filter(item=>item && item.name!=="无糖可乐");
+  s.tasks=(Array.isArray(s.tasks)?s.tasks:clone(BASE_TASKS)).map(withoutLegacyMoneyFields);
+  s.completed=(Array.isArray(s.completed)?s.completed:[]).map(withoutLegacyMoneyFields);
   s.migrations=s.migrations||{};
 
   /* Japan history: preserve and add exactly once for users coming from older versions */
@@ -1806,7 +1811,6 @@ function migrateState(s,{persist=true}={}){
     const already=s.completed.some(x=>x&&x.title==="七日海外独立远征（日本）");
     if(!already){
       s.exp+=1600;
-      s.coins+=700;
       s.attrs["独立行动力"]=safeNum(s.attrs["独立行动力"],0)+2;
       s.attrs["陌生环境适应力"]=safeNum(s.attrs["陌生环境适应力"],0)+2;
       s.attrs["旅行规划能力"]=safeNum(s.attrs["旅行规划能力"],0)+2;
@@ -1816,7 +1820,10 @@ function migrateState(s,{persist=true}={}){
         title:"七日海外独立远征（日本）",
         rank:"A",
         date:"2026-08",
-        rewards:"+1600 EXP · +700 金币 · 独立行动力 +2 · 陌生环境适应力 +2 · 旅行规划能力 +2 · 现实胆量 +2 · 人生故事 +3 · 解锁区域「日本」 · 解锁称号「独行者Ⅰ」"
+        route:"上海 → 东京",
+        places:["富士山"],
+        milestoneTags:["solo-trip","cross-city","overseas","mountain","special-travel","overseas-independent"],
+        rewards:"+1600 EXP · 独立行动力 +2 · 陌生环境适应力 +2 · 旅行规划能力 +2 · 现实胆量 +2 · 人生故事 +3 · 解锁区域「日本」 · 解锁称号「独行者Ⅰ」"
       });
     }
     if(!s.regions.includes("日本"))s.regions.push("日本");
@@ -1826,7 +1833,7 @@ function migrateState(s,{persist=true}={}){
     s.migrations.japanExpedition202608=true;
   }
 
-  /* FINAL: preserve user's existing custom reward numbers if already present */
+  /* FINAL: preserve the user's existing non-monetary task settings. */
   if(!s.finalTask){
     s.finalTask=clone(DEFAULT_STATE.finalTask);
   }else{
@@ -1839,8 +1846,10 @@ function migrateState(s,{persist=true}={}){
   if(s.finalTask.conditionStatus.length!==(s.finalTask.conditions||[]).length){
     s.finalTask.conditionStatus=(s.finalTask.conditions||[]).map((_,i)=>Boolean(s.finalTask.conditionStatus[i]));
   }
+  s.finalTask=withoutLegacyMoneyFields(s.finalTask);
 
   reconcileImportedTaskIds(s);
+  reconcileHistoricalTravelMetadata(s);
   reconcileUnlockRecords(s);
   reconcileMilestones(s);
 
@@ -2165,9 +2174,11 @@ async function bootstrapCloudForUser(){
     const data=await fetchCloudRow("life_saves","user_id",cloudUser.id);
     if(data?.state){
       const importedIdMigrationNeeded=needsImportedTaskIdMigration(data.state);
+      const legacyMoneyCleanupNeeded=needsLegacyMoneyCleanup(data.state);
+      const historicalTravelMetadataNeeded=needsHistoricalTravelMetadata(data.state);
       applyRemoteState(data,{force:true});
       setCloudStatus("已同步","ok");
-      if(importedIdMigrationNeeded){
+      if(importedIdMigrationNeeded||legacyMoneyCleanupNeeded||historicalTravelMetadataNeeded){
         await pushCloudState();
       }else{
         try{
@@ -2453,7 +2464,7 @@ function setupParallax(){
     hero.style.setProperty("--heroShift",(y*.08)+"px");
   },{passive:true});
 }
-const PAGE_ROUTES=["home","tasksSection","recordsSection","shopSection","finalSection"];
+const PAGE_ROUTES=["home","tasksSection","recordsSection","finalSection"];
 let navigatePage;
 function currentPageRoute(){
   // Hash routes work on static hosting without server-side pathname rewrites.
@@ -2721,7 +2732,6 @@ function renderHeader(){
   document.getElementById("nextLevel").textContent=p.level>=999?"等级上限":"下一等级 Lv."+(p.level+1);
   requestAnimationFrame(()=>document.getElementById("expFill").style.width=(Math.max(0,Math.min(1,p.ratio))*100)+"%");
 
-  animateNumber(document.getElementById("coinValue"),state.coins);
   animateNumber(document.getElementById("recordValue"),state.completed.length);
   animateNumber(document.getElementById("titleValue"),state.titles.length);
   animateNumber(document.getElementById("regionValue"),state.regions.length);
@@ -2767,7 +2777,6 @@ function renderTasks(){
       <h3>${escapeHtml(t.title)}</h3>
       <p>${escapeHtml(t.desc||"")}</p>
       <div class="reward-line">
-        <span class="reward-badge">+${safeNum(t.coins)} 金币</span>
         <span class="reward-badge">${escapeHtml(t.attr||"探索")} +${safeNum(t.gain,1)}</span>
         ${t.titleReward?`<span class="reward-badge">${escapeHtml(t.titleReward)}</span>`:""}
       </div>
@@ -3409,18 +3418,6 @@ function renderArchiveContent(){
   }).join("")}</div>`;
 }
 
-function renderShop(){
-  const box=document.getElementById("shopGrid");
-  box.innerHTML=state.shop.map((x,i)=>`
-    <div class="shop-card reveal ${i%3===1?"reveal-delay-1":i%3===2?"reveal-delay-2":""}">
-      <h3>${escapeHtml(x.name)}</h3>
-      <p>${escapeHtml(x.note||"")}</p>
-      <div class="shop-price">${safeNum(x.cost).toLocaleString()} 金币</div>
-      <button onclick="buyItem(${i})">兑换</button>
-    </div>
-  `).join("");
-}
-
 function renderFinal(){
   const f=state.finalTask||DEFAULT_STATE.finalTask;
   const conditions=Array.isArray(f.conditions)?f.conditions:[];
@@ -3450,9 +3447,8 @@ function renderFinal(){
   }).join("");
 
   document.getElementById("finalRewards").innerHTML=`
-    <div class="final-reward major"><span>LEVEL STATUS</span><strong class="gold">MAX LEVEL</strong></div>
-    <div class="final-reward major"><span>COIN STATUS</span><strong class="gold">MAX</strong></div>
-    <div class="final-reward major"><span>INDEPENDENCE</span><strong class="gold">MAX</strong></div>
+    <div class="final-reward major"><span>LEVEL STATUS</span><strong class="accent">MAX LEVEL</strong></div>
+    <div class="final-reward major"><span>INDEPENDENCE</span><strong class="accent">MAX</strong></div>
     <div class="final-reward minor"><span>FINAL TITLE</span><strong>${escapeHtml(f.titleReward)}</strong></div>
     <div class="final-reward minor"><span>NEW CHAPTER</span><strong>${escapeHtml(f.chapterReward)}</strong></div>
   `;
@@ -3482,7 +3478,6 @@ function render(){
   renderAttrs();
   renderTasks();
   renderTimeline();
-  renderShop();
   renderFinal();
   if(document.getElementById("archiveModal")?.classList.contains("open"))renderArchiveContent();
   setTimeout(setupReveal,0);
@@ -3518,7 +3513,6 @@ function completeTask(id){
   const regionWasUnlocked=t.regionReward?state.regions.includes(t.regionReward):false;
 
   state.exp+=safeNum(t.exp);
-  state.coins+=safeNum(t.coins);
   state.attrs[t.attr]=safeNum(state.attrs[t.attr],0)+safeNum(t.gain,1);
   const completedAt=new Date().toISOString();
 
@@ -3530,7 +3524,8 @@ function completeTask(id){
     taskId:t.id,taskKey:taskCompletionKey(t),taskCode,taskRef:taskReferenceFor(t),desc:t.desc||"",
     title:t.title,rank:t.rank,date:new Date(completedAt).toLocaleDateString("zh-CN"),completedAt,
     titleReward:t.titleReward||"",regionReward:t.regionReward||"",
-    rewards:`+${safeNum(t.exp)} EXP · +${safeNum(t.coins)} 金币 · ${t.attr} +${safeNum(t.gain,1)}${t.titleReward?" · 解锁称号「"+t.titleReward+"」":""}`
+    route:t.route||"",places:Array.isArray(t.places)?t.places:[],milestoneTags:Array.isArray(t.milestoneTags)?t.milestoneTags:[],
+    rewards:`+${safeNum(t.exp)} EXP · ${t.attr} +${safeNum(t.gain,1)}${t.titleReward?" · 解锁称号「"+t.titleReward+"」":""}`
   });
 
   state.activeTasks=state.activeTasks.filter(taskId=>taskId!==id);
@@ -3611,7 +3606,6 @@ function createTask(){
     title,
     rank:document.getElementById("taskRank").value,
     exp:Math.max(1,safeNum(document.getElementById("taskExp").value,120)),
-    coins:Math.max(0,safeNum(document.getElementById("taskCoins").value,60)),
     attr:document.getElementById("taskAttr").value,
     gain:Math.max(1,safeNum(document.getElementById("taskGain").value,1)),
     titleReward:document.getElementById("taskTitleReward").value.trim(),
@@ -3631,13 +3625,6 @@ function deleteTask(id){
   state.activeTasks=state.activeTasks.filter(taskId=>taskId!==id);
   save();toast("已删除任务");
 }
-function buyItem(i){
-  if(IS_PREVIEW)return;
-  const x=state.shop[i];if(!x)return;
-  if(state.coins<safeNum(x.cost))return toast("金币不够");
-  state.coins-=safeNum(x.cost);save();toast("已兑换："+x.name);
-}
-
 /* ---------- Task code ---------- */
 function bytesToBase64Url(str){
   const bytes=new TextEncoder().encode(str);let binary="";
@@ -3652,7 +3639,7 @@ function base64UrlToText(code){
 }
 function encodeTaskCode(t){
   return "ZYQ1:"+bytesToBase64Url(JSON.stringify({
-    v:1,title:t.title,rank:t.rank,exp:safeNum(t.exp,100),coins:safeNum(t.coins,0),
+    v:1,title:t.title,rank:t.rank,exp:safeNum(t.exp,100),
     attr:t.attr||"探索",gain:safeNum(t.gain,1),desc:t.desc||"",
     titleReward:t.titleReward||"",regionReward:t.regionReward||""
   }));
@@ -3726,7 +3713,6 @@ function completeFinalTask(){
   f.completed=true;
   f.completedAt=new Date().toISOString();
   state.exp+=safeNum(f.exp);
-  state.coins+=safeNum(f.coins);
   state.attrs[f.attr]=100;
 
   if(f.titleReward)unlockTitle(f.titleReward,f.title,f.completedAt);
@@ -3737,7 +3723,7 @@ function completeFinalTask(){
     taskId:f.id,taskKey:taskCompletionKey({...f,rank:"FINAL"}),taskCode,taskRef:taskReferenceFor({...f,rank:"FINAL"}),desc:f.desc||"",
     title:f.title,rank:"FINAL",date:new Date(f.completedAt).toLocaleDateString("zh-CN"),completedAt:f.completedAt,
     titleReward:f.titleReward||"",regionReward:"",
-    rewards:`MAX LEVEL · MAX 金币 · ${f.attr} MAX · 解锁称号「${f.titleReward}」 · 解锁章节「${f.chapterReward}」`
+    rewards:`MAX LEVEL · ${f.attr} MAX · 解锁称号「${f.titleReward}」 · 解锁章节「${f.chapterReward}」`
   });
   reconcileMilestones(state);
   const newMilestones=milestoneViews().filter(item=>item.achieved&&!milestoneIdsBefore.has(item.id));
@@ -4001,7 +3987,6 @@ function applyPreviewMode(){
     "acceptTask(",
     "completeTask(",
     "deleteTask(",
-    "buyItem(",
     "completeFinalTask(",
     "openImportModal(",
     "openSettingsModal(",

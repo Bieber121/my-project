@@ -18,11 +18,11 @@ async function resetForMilestoneTask(page, id = 'milestone-test') {
   await page.evaluate(taskId => {
     const task = {
       id: taskId, custom: true, rank: 'S', title: '海外独立凌晨跨城当天往返长距离徒步',
-      exp: 1, coins: 0, attr: '探索', gain: 1, desc: '一次特殊旅行记录', regionReward: '法国'
+      exp: 1, attr: '探索', gain: 1, desc: '一次特殊旅行记录', regionReward: '法国'
     };
     state = migrateState({
-      exp: 0, coins: 0, titles: ['新手旅人'], currentTitle: '新手旅人', regions: [], chapters: ['现实世界篇'],
-      selectedRank: 'S', tasks: [task], activeTasks: [task.id], attrs: { 探索: 0 }, completed: [], milestones: [], shop: [],
+      exp: 0, titles: ['新手旅人'], currentTitle: '新手旅人', regions: [], chapters: ['现实世界篇'],
+      selectedRank: 'S', tasks: [task], activeTasks: [task.id], attrs: { 探索: 0 }, completed: [], milestones: [],
       migrations: { japanExpedition202608: true, stableImportedTaskIds: true }, finalTask: clone(DEFAULT_STATE.finalTask)
     });
     save();
@@ -48,22 +48,40 @@ async function resetForMilestoneTask(page, id = 'milestone-test') {
 
   try {
     await page.goto(base);
+    assert(await page.locator('[data-milestone-id="first-mountain"]').evaluate(el => el.classList.contains('achieved')), 'rendered history marks the Fuji mountain milestone achieved');
+    assert(await page.locator('[data-milestone-id="first-cross-city"]').evaluate(el => el.classList.contains('achieved')), 'rendered history marks the Shanghai-to-Tokyo milestone achieved');
 
     // Old saves are scanned immediately; dates and satisfied conditions are retained.
     const history = await page.evaluate(() => {
       const migrated = migrateState({
-        exp: 0, coins: 0, titles: ['新手旅人'], currentTitle: '新手旅人', regions: ['日本'], chapters: [],
-        selectedRank: 'E', tasks: [], activeTasks: [], attrs: {}, shop: [], milestones: [],
+        exp: 0, titles: ['新手旅人'], currentTitle: '新手旅人', regions: ['日本'], chapters: [],
+        selectedRank: 'E', tasks: [], activeTasks: [], attrs: {}, milestones: [],
         migrations: { japanExpedition202608: true, stableImportedTaskIds: true }, finalTask: clone(DEFAULT_STATE.finalTask),
         completed: [{ title: '七日海外独立远征（日本）', rank: 'A', date: '2026-08', regionReward: '日本', rewards: '解锁区域「日本」' }]
       }, { persist: false });
-      return migrated.milestones;
+      return {
+        milestones: migrated.milestones,
+        expedition: migrated.completed.find(record => record.title === '七日海外独立远征（日本）')
+      };
     });
-    const historyIds = new Set(history.map(record => record.id));
-    for (const id of ['first-task', 'first-a-task', 'first-overseas-task', 'first-overseas-region', 'first-japan-region', 'first-overseas-independent']) {
+    const historyIds = new Set(history.milestones.map(record => record.id));
+    for (const id of ['first-task', 'first-a-task', 'first-overseas-task', 'first-overseas-region', 'first-japan-region', 'first-overseas-independent', 'first-mountain', 'first-cross-city', 'first-special-travel']) {
       assert(historyIds.has(id), `historical save backfills ${id}`);
     }
-    assert.equal(history.find(record => record.id === 'first-task').achievedAt, '2026-08');
+    assert.equal(history.milestones.find(record => record.id === 'first-task').achievedAt, '2026-08');
+    assert.equal(history.expedition.route, '上海 → 东京');
+    assert(history.expedition.places.includes('富士山'));
+    assert(history.expedition.milestoneTags.includes('mountain'));
+    assert(history.expedition.milestoneTags.includes('cross-city'));
+
+    // Route metadata detects travel even when the task text never says “跨城”.
+    const routeOnlyMilestones = await page.evaluate(() => migrateState({
+      exp: 0, titles: ['新手旅人'], currentTitle: '新手旅人', regions: [], chapters: [],
+      selectedRank: 'E', tasks: [], activeTasks: [], attrs: {}, milestones: [],
+      migrations: { japanExpedition202608: true, stableImportedTaskIds: true, historicalTravelMetadataV1: true }, finalTask: clone(DEFAULT_STATE.finalTask),
+      completed: [{ title: '周末移动记录', rank: 'B', date: '2026-09', route: '上海 → 东京' }]
+    }, { persist: false }).milestones.map(record => record.id));
+    assert(routeOnlyMilestones.includes('first-cross-city'), 'explicit city-to-city route triggers cross-city milestone');
 
     await resetForMilestoneTask(page);
     await page.evaluate(() => { completeTask('milestone-test'); completeTask('milestone-test'); });
@@ -85,6 +103,22 @@ async function resetForMilestoneTask(page, id = 'milestone-test') {
     assert.equal(result.activeCount, 0);
     assert.match(result.overlay, /已记录到人生档案[\s\S]*任务完成[\s\S]*海外独立凌晨跨城当天往返长距离徒步[\s\S]*等级[\s\S]*S[\s\S]*完成日期[\s\S]*任务代码[\s\S]*新增记录[\s\S]*法国[\s\S]*新增里程碑/);
     assert(!/EXP|金币|属性|MISSION COMPLETE/i.test(result.overlay), 'completion sheet avoids game reward language');
+    const removalAudit = await page.evaluate(() => ({
+      hasLegacyMoney: needsLegacyMoneyCleanup(state),
+      visibleText: document.body.innerText,
+      shopSection: Boolean(document.getElementById('shopSection')),
+      shopNav: Boolean(document.querySelector('[data-target="shopSection"]')),
+      balanceNode: Boolean(document.getElementById('coinValue')),
+      taskMoneyInput: Boolean(document.getElementById('taskCoins')),
+      encodedTask: decodeTaskCode(encodeTaskCode({ title: '兼容任务', rank: 'E', exp: 1, coins: 100, attr: '探索', gain: 1 }))
+    }));
+    assert.equal(removalAudit.hasLegacyMoney, false, 'new state contains no legacy monetary data');
+    assert.equal(removalAudit.shopSection, false);
+    assert.equal(removalAudit.shopNav, false);
+    assert.equal(removalAudit.balanceNode, false);
+    assert.equal(removalAudit.taskMoneyInput, false);
+    assert(!/金币|Coins?|余额|兑换|商城|商店/i.test(removalAudit.visibleText), 'no monetary wording remains visible');
+    assert.equal(Object.hasOwn(removalAudit.encodedTask, 'coins'), false, 'new task codes do not carry monetary rewards');
 
     // A completed task code cannot be imported and completed again.
     const duplicateImport = await page.evaluate(() => {

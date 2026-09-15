@@ -16,7 +16,7 @@ const server = http.createServer((req, res) => {
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.end(req.url.startsWith('/baseline') ? baseline : html);
 });
-const routes = ['home', 'tasksSection', 'recordsSection', 'shopSection', 'finalSection'];
+const routes = ['home', 'tasksSection', 'recordsSection', 'finalSection'];
 const pause = (page, ms) => page.waitForTimeout(ms);
 async function active(page, id) {
   await page.waitForFunction(id => location.hash === '#' + id &&
@@ -37,8 +37,18 @@ async function content(page) {
     rewards: document.querySelector('#finalRewards').textContent,
     actions: document.querySelector('#finalActions').textContent,
     progress: document.querySelector('#finalProgress').textContent,
-    task: JSON.stringify(state.finalTask)
+    task: JSON.parse(JSON.stringify(state.finalTask))
   }));
+}
+function durableContent(value) {
+  const copy = structuredClone(value);
+  delete copy.rewards;
+  delete copy.task.coins;
+  delete copy.task.coinBalance;
+  delete copy.task.gold;
+  delete copy.task.currency;
+  delete copy.task.balance;
+  return copy;
 }
 async function run() {
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
@@ -60,9 +70,11 @@ async function run() {
       const before = await content(page);
       await page.goto(base);
       await active(page, 'home');
-      assert.deepEqual(await content(page), before, name + ': existing content and state preserved');
+      const current = await content(page);
+      assert.deepEqual(durableContent(current), durableContent(before), name + ': existing non-monetary content and state preserved');
+      assert(!/COIN|金币|兑换|余额/i.test(current.rewards), name + ': FINAL contains no monetary reward');
       assert.equal(await page.evaluate(() => document.body.dataset.finalDevice), name);
-      for (const id of routes.slice(0, 4)) {
+      for (const id of routes.slice(0, 3)) {
         await page.locator(`[data-target="${id}"]`).click();
         await active(page, id);
         await pause(page, 1500);
@@ -120,7 +132,7 @@ async function run() {
       await active(page, 'finalSection');
       await page.screenshot({ path: path.join(output, name + '-locked.png') });
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), name + ': no horizontal overflow');
-      assert.deepEqual(await content(page), before);
+      assert.deepEqual(durableContent(await content(page)), durableContent(before));
       // Scrolling around the section, including its boundary, must not restart this visit.
       for (const offset of [500, 130, -0.58, -0.5, 0]) {
         await page.evaluate(offset => window.scrollTo({ top: document.querySelector('#finalSection').offsetTop +
@@ -145,10 +157,10 @@ async function run() {
       await page.reload();
       await active(page, 'finalSection');
       await page.waitForSelector('.final-settled');
-      await instant(page, 'shopSection');
+      await instant(page, 'recordsSection');
       await instant(page, 'finalSection');
       await page.goBack();
-      await active(page, 'shopSection');
+      await active(page, 'recordsSection');
       assert.equal(await page.locator('.final-vignette').evaluate(el => getComputedStyle(el).opacity), '0');
       await page.goForward();
       await active(page, 'finalSection');
@@ -172,7 +184,7 @@ async function run() {
       await active(page, 'finalSection');
       assert.equal(await page.locator('.final-particles i').count(), 0);
       assert.equal(await page.locator('.final-title').evaluate(el => el.getAnimations().length), 0);
-      assert.deepEqual(await content(page), before);
+      assert.deepEqual(durableContent(await content(page)), durableContent(before));
       await page.emulateMedia({ reducedMotion: 'no-preference' });
       await instant(page, 'home');
       await instant(page, 'finalSection');

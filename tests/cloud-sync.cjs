@@ -163,6 +163,12 @@ async function run() {
       const legacy = clone(state);
       legacy.titles.push('历史称号');
       legacy.regions.push('历史区域');
+      legacy.coins = 900;
+      legacy.coinBalance = 800;
+      legacy.gold = 700;
+      legacy.currency = 600;
+      legacy.balance = 500;
+      legacy.shop = [{ name: '旧商品', cost: 100 }];
       const legacyImportedId = 'imported_1723456789000_4821';
       legacy.tasks.push({ id: legacyImportedId, custom: true, imported: true, title: '旧随机导入任务', rank: 'C', exp: 260, coins: 90, attr: '探索', gain: 2, desc: '旧设备已接取' });
       legacy.activeTasks.push(legacyImportedId);
@@ -178,7 +184,10 @@ async function run() {
         japan: migrated.regionRecords.find(x => x.name === '日本'),
         migratedTaskId: migratedTask.id,
         migratedTaskActive: migrated.activeTasks.includes(migratedTask.id),
-        deterministicId: normalizeTask({ title: '旧随机导入任务', rank: 'C', exp: 260, coins: 90, attr: '探索', gain: 2, desc: '旧设备已接取' }).id
+        deterministicId: normalizeTask({ title: '旧随机导入任务', rank: 'C', exp: 260, coins: 90, attr: '探索', gain: 2, desc: '旧设备已接取' }).id,
+        hasLegacyMoney: needsLegacyMoneyCleanup(migrated),
+        taskHasCoins: Object.hasOwn(migratedTask, 'coins'),
+        hasShop: Object.hasOwn(migrated, 'shop')
       };
     });
     assert(legacyMigration.titles.includes('历史称号'));
@@ -190,6 +199,9 @@ async function run() {
     assert.match(legacyMigration.migratedTaskId, /^imported_[a-z0-9]{14}$/);
     assert.equal(legacyMigration.migratedTaskId, legacyMigration.deterministicId);
     assert(legacyMigration.migratedTaskActive, 'legacy activeTasks reference migrates with the imported task id');
+    assert.equal(legacyMigration.hasLegacyMoney, false, 'legacy monetary fields are removed during migration');
+    assert.equal(legacyMigration.taskHasCoins, false, 'legacy task reward is ignored');
+    assert.equal(legacyMigration.hasShop, false, 'legacy shop data is discarded');
 
     // Interactive stats are native keyboard buttons; title switching renders and syncs immediately.
     const titleEntry = computer.locator('button[onclick="openArchiveModal(\'titles\')"]');
@@ -248,7 +260,7 @@ async function run() {
     await waitState(friend, 's => !s.activeTasks.includes("e1") && s.completed.some(x => x.title === "跑步机 20 分钟")', 'friend receives completion');
     const completed = await stateOf(computer);
     assert.equal(completed.exp, beforeCompletion.exp + 80);
-    assert.equal(completed.coins, beforeCompletion.coins + 30);
+    assert.equal(Object.hasOwn(completed, 'coins'), false);
     assert.equal(completed.attrs['耐力'], beforeCompletion.attrs['耐力'] + 1);
 
     // Imported task IDs are deterministic across devices and preserve active/completed state through Realtime.
@@ -277,6 +289,11 @@ async function run() {
     const legacyCloudTask = { id: legacyCloudId, custom: true, imported: true, title: '云端旧随机任务', rank: 'D', exp: 180, coins: 60, attr: '探索', gain: 1, desc: '验证启动迁移回写' };
     database.life_saves.state.tasks.push(legacyCloudTask);
     database.life_saves.state.activeTasks.push(legacyCloudId);
+    const legacyExpedition = database.life_saves.state.completed.find(record => record.title === '七日海外独立远征（日本）');
+    delete legacyExpedition.route;
+    delete legacyExpedition.places;
+    delete legacyExpedition.milestoneTags;
+    delete database.life_saves.state.migrations.historicalTravelMetadataV1;
     database.life_saves.updated_at = new Date(Date.parse(database.life_saves.updated_at) + 1000).toISOString();
     const migrationContext = await context({ viewport: { width: 760, height: 760 } });
     const migrationOwner = await open(migrationContext, base);
@@ -285,6 +302,13 @@ async function run() {
     await waitState(computer, `s => s.activeTasks.includes("${stableCloudId}")`, 'bootstrap writes migrated imported id back to cloud');
     assert(database.life_saves.state.activeTasks.includes(stableCloudId));
     assert(!database.life_saves.state.activeTasks.includes(legacyCloudId));
+    assert.equal(Object.hasOwn(database.life_saves.state.tasks.find(task => task.id === stableCloudId), 'coins'), false);
+    const migratedExpedition = database.life_saves.state.completed.find(record => record.title === '七日海外独立远征（日本）');
+    assert.equal(migratedExpedition.route, '上海 → 东京');
+    assert(migratedExpedition.places.includes('富士山'));
+    assert(migratedExpedition.milestoneTags.includes('mountain'));
+    assert(database.life_saves.state.milestones.some(record => record.id === 'first-mountain'));
+    assert(database.life_saves.state.milestones.some(record => record.id === 'first-cross-city'));
     await migrationOwner.evaluate(id => deleteTask(id), stableCloudId);
     await waitState(computer, `s => !s.tasks.some(x => x.id === "${stableCloudId}") && !s.activeTasks.includes("${stableCloudId}")`, 'migrated task cleanup reaches cloud');
     await waitState(mobile, `s => !s.tasks.some(x => x.id === "${stableCloudId}") && !s.activeTasks.includes("${stableCloudId}")`, 'migrated task cleanup syncs');
@@ -301,12 +325,11 @@ async function run() {
       waitState(stale, 's => s.activeTasks.includes("e2")', 'fallback polling updates owner', 6000)
     ]);
 
-    // New title/region unlock metadata, deletion, FINAL condition and coin exchange use the same save pipeline.
+    // New title/region unlock metadata, deletion and FINAL conditions use the same save pipeline.
     await computer.evaluate(() => {
       document.querySelector('#taskName').value = '称号解锁任务';
       document.querySelector('#taskRank').value = 'E';
       document.querySelector('#taskExp').value = '10';
-      document.querySelector('#taskCoins').value = '5';
       document.querySelector('#taskAttr').value = '探索';
       document.querySelector('#taskGain').value = '1';
       document.querySelector('#taskTitleReward').value = '同步勇者';
@@ -363,17 +386,13 @@ async function run() {
 
     await computer.evaluate(() => toggleFinalCondition(0));
     await waitState(friend, 's => s.finalTask.conditionStatus[0] === true', 'friend receives FINAL condition');
-    await computer.evaluate(() => { state.coins = 5000; save(); });
-    await waitState(mobile, 's => s.coins === 5000', 'mobile receives generic state mutation');
-    await computer.evaluate(() => buyItem(0));
-    await waitState(friend, 's => s.coins === 4000', 'friend receives coin exchange');
 
     // Preview mutation entry points are inert and never write Supabase.
     await friend.waitForTimeout(750);
     const mutationsBeforePreviewActions = mutations;
     const databaseBeforePreviewActions = structuredClone(database);
     await friend.evaluate(() => {
-      acceptTask('e2'); completeTask('e2'); deleteTask('e2'); buyItem(0);
+      acceptTask('e2'); completeTask('e2'); deleteTask('e2');
       toggleFinalCondition(1); completeFinalTask(); resetAll();
     });
     await friend.waitForTimeout(500);
@@ -385,7 +404,7 @@ async function run() {
     await mobile.evaluate(staleState => localStorage.setItem(STORAGE_KEY, JSON.stringify(staleState)), initial);
     await mobile.close();
     const reopenedMobile = await open(mobileContext, base);
-    await waitState(reopenedMobile, 's => s.coins === 4000 && s.finalTask.conditionStatus[0] === true', 'reopened mobile restores newest cloud state');
+    await waitState(reopenedMobile, 's => !Object.hasOwn(s, "coins") && s.finalTask.conditionStatus[0] === true', 'reopened mobile restores newest cloud state');
     assert.deepEqual(await stateOf(reopenedMobile), database.life_saves.state);
 
     // FINAL completion is also a normal cloud mutation and reaches every open client.
@@ -419,7 +438,7 @@ async function run() {
     assert.deepEqual(pageErrors, [], 'no browser JavaScript errors');
 
     console.log('PASS A: owner-to-owner accepted task Realtime sync');
-    console.log('PASS B: completion sync updates EXP, coins, attributes, records and task status');
+    console.log('PASS B: completion sync updates EXP, attributes, records and task status without monetary fields');
     console.log('PASS imported task stable ID, legacy migration, active UI and cross-device completion');
     console.log('PASS C: preview Realtime + four-second fallback polling + refresh persistence');
     console.log('PASS D: reopened owner prioritizes life_saves over stale localStorage');
