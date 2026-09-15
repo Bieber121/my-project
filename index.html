@@ -2726,7 +2726,7 @@ function renderRegions(){
     return{record,regionId,photos,cover,coverUrl};
   });
   grid.innerHTML=cards.map(({record,regionId,photos,cover,coverUrl})=>`
-    <button type="button" class="region-showcase-card reveal${coverUrl?" has-cover":""}"
+    <button type="button" class="region-showcase-card${coverUrl?" has-cover":""}"
       data-showcase-region-id="${escapeHtml(regionId)}" data-cover-photo-id="${escapeHtml(cover?.id||"")}"
       aria-label="查看${escapeHtml(record.name)}区域档案">
       <span class="region-showcase-content">

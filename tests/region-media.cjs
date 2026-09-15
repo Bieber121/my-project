@@ -114,6 +114,12 @@ async function makePage(browser, base, seed, mobile = false) {
     await owner.page.waitForSelector('[data-showcase-region-id="japan"]');
     const initialShowcase = owner.page.locator('[data-showcase-region-id="japan"]');
     assert.equal(await initialShowcase.count(), 1, 'one unlocked region renders as one showcase card');
+    assert.deepEqual(await initialShowcase.evaluate(el => ({ reveal: el.classList.contains('reveal'), opacity: getComputedStyle(el).opacity })), { reveal: false, opacity: '1' }, 'dynamic showcase card is immediately visible');
+    await owner.page.evaluate(() => refreshRegionData({ force: true }));
+    await owner.page.waitForFunction(() => {
+      const card = document.querySelector('[data-showcase-region-id="japan"]');
+      return card && !card.classList.contains('reveal') && getComputedStyle(card).opacity === '1';
+    });
     assert.match(await initialShowcase.textContent(), /JAPAN[\s\S]*日本[\s\S]*2026\.08 解锁[\s\S]*七日海外独立远征（日本）[\s\S]*暂无照片[\s\S]*查看档案/);
     const singleGeometry = await initialShowcase.evaluate(el => ({ card: el.getBoundingClientRect().width, grid: el.parentElement.getBoundingClientRect().width }));
     assert(singleGeometry.card > 900 && Math.abs(singleGeometry.card - singleGeometry.grid) < 1, 'single region uses a wide card');
@@ -141,6 +147,7 @@ async function makePage(browser, base, seed, mobile = false) {
     assert.match(await owner.page.locator('#regionUploadStatus').textContent(), /上传完成/);
     assert.match(await owner.page.locator('[data-showcase-region-id="japan"]').textContent(), /2 张照片/);
     assert(await owner.page.locator('[data-showcase-region-id="japan"]').evaluate(el => el.classList.contains('has-cover') && getComputedStyle(el).backgroundImage !== 'none'));
+    assert.equal(await owner.page.locator('[data-showcase-region-id="japan"]').evaluate(el => getComputedStyle(el).opacity), '1', 'card remains visible after photo refresh rerender');
     await owner.page.screenshot({ path: path.join(output, 'desktop-region-detail.png') });
     const compression = await owner.page.evaluate(async () => {
       const entries = [...window.__regionFake.uploaded.entries()];
@@ -213,6 +220,7 @@ async function makePage(browser, base, seed, mobile = false) {
     await preview.page.waitForSelector('[data-showcase-region-id="japan"]');
     const mobileShowcase = await preview.page.locator('#regionsGrid').evaluate(el => ({ count: el.children.length, columns: getComputedStyle(el).gridTemplateColumns.split(' ').length, width: document.documentElement.scrollWidth, screen: innerWidth }));
     assert.deepEqual(mobileShowcase, { count: 1, columns: 1, width: 390, screen: 390 }, 'preview showcase is one column with no mobile overflow');
+    assert.deepEqual(await preview.page.locator('[data-showcase-region-id="japan"]').evaluate(el => ({ reveal: el.classList.contains('reveal'), opacity: getComputedStyle(el).opacity })), { reveal: false, opacity: '1' }, 'mobile preview card remains visible after cloud refresh');
     await preview.page.locator('[data-showcase-region-id="japan"]').click();
     await preview.page.waitForFunction(() => document.querySelector('.region-note-copy')?.textContent.includes('这里会继续生长'));
     assert.equal(await preview.page.locator('.region-upload-btn').count(), 0, 'preview has no upload control');
