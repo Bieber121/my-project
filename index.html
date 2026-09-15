@@ -1317,6 +1317,7 @@ let regionUploadCanRetry=false;
 let regionLightboxIndex=0;
 let regionLightboxStartX=null;
 let regionOwnerVerified=false;
+let regionOwnerError="";
 let heicConverterPromise=null;
 const RANKS=["E","D","C","B","A","S","SS","SSS"];
 const RANK_THRESHOLDS={E:0,D:300,C:900,B:2200,A:5000,S:9000,SS:15000,SSS:25000};
@@ -2474,16 +2475,65 @@ function regionOwnerMode(){return !IS_PREVIEW&&Boolean(cloudUser)&&regionOwnerVe
 
 async function verifyRegionOwner(){
   regionOwnerVerified=false;
+  regionOwnerError="";
   if(IS_PREVIEW||!cloudUser||!supabaseClient)return false;
   try{
+    const [sessionResult,userResult]=await Promise.all([
+      supabaseClient.auth.getSession(),
+      supabaseClient.auth.getUser()
+    ]);
+    if(sessionResult.error)throw regionStageError("登录 Session 验证失败",sessionResult.error);
+    if(userResult.error)throw regionStageError("登录用户验证失败",userResult.error);
+    const sessionUser=sessionResult.data?.session?.user||null;
+    const verifiedUser=userResult.data?.user||null;
+    if(!sessionUser||!verifiedUser)throw regionStageError("登录用户验证失败",new Error("Supabase 登录已失效，请重新登录云存档"));
+    if(sessionUser.id!==verifiedUser.id||cloudUser.id!==verifiedUser.id){
+      throw regionStageError("登录用户验证失败",new Error("本地 Session 与 Supabase 当前用户不一致，请重新登录"));
+    }
     const {data,error}=await supabaseClient.from("public_state").select("owner_id").eq("slug",PUBLIC_STATE_SLUG).maybeSingle();
-    if(error)throw error;
-    regionOwnerVerified=data?.owner_id===cloudUser.id;
+    if(error)throw regionStageError("主人身份查询失败",error);
+    if(!data?.owner_id)throw regionStageError("主人身份验证失败",new Error("public_state 中没有 zuoyu 的 owner_id"));
+    regionOwnerVerified=data.owner_id===verifiedUser.id;
+    if(!regionOwnerVerified)throw regionStageError("主人身份验证失败",new Error("当前 auth.uid() 与 public_state.owner_id 不一致"));
+    cloudUser=verifiedUser;
+    console.info("Region owner verification",{
+      hasSession:true,
+      authenticatedUserId:verifiedUser.id,
+      publicOwnerId:data.owner_id,
+      matches:true
+    });
   }catch(error){
-    console.error("Region owner verification failed",error);
+    regionOwnerError=error?.message||"主人身份验证失败";
+    console.error("Region owner verification failed",{error,cause:error?.cause,cloudUserId:cloudUser?.id||null});
   }
   if(document.getElementById("archiveModal")?.classList.contains("open"))renderArchiveContent();
   return regionOwnerVerified;
+}
+
+function regionErrorStatus(error){
+  const raw=error?.statusCode??error?.status??error?.cause?.statusCode??error?.cause?.status;
+  const text=String(raw??"").trim();
+  if(text&&text!=="undefined")return text;
+  const code=String(error?.code||error?.cause?.code||"");
+  if(code==="42501")return"403";
+  if(["23503","23505"].includes(code))return"409";
+  if(["23502","23514","22P02"].includes(code))return"400";
+  return"";
+}
+
+function regionStageError(stage,error){
+  if(error?.regionStage)return error;
+  const message=error?.message||error?.error_description||String(error||"未知错误");
+  const status=regionErrorStatus(error);
+  const code=error?.code||error?.cause?.code||"";
+  const diagnostic=`${stage}：${message}${status?`（HTTP ${status}${code?` · ${code}`:""}）`:code?`（${code}）`:""}`;
+  const wrapped=new Error(diagnostic);
+  wrapped.cause=error;
+  wrapped.name="RegionUploadError";
+  wrapped.regionStage=stage;
+  wrapped.status=status;
+  wrapped.code=code;
+  return wrapped;
 }
 
 function photoPublicUrl(path){
@@ -2534,6 +2584,10 @@ function canvasBlob(canvas,type,quality){
   return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error("浏览器无法生成压缩图片")),type,quality));
 }
 
+function validRegionImageBlob(blob,type){
+  return blob instanceof Blob&&blob.size>0&&blob.type===type;
+}
+
 async function decodeRegionImage(blob){
   if("createImageBitmap" in window){
     try{return await createImageBitmap(blob,{imageOrientation:"from-image"})}catch(error){}
@@ -2566,19 +2620,34 @@ async function prepareRegionSource(file){
   return Array.isArray(converted)?converted[0]:converted;
 }
 
-async function encodeRegionVariant(image,maxEdge,quality){
+async function encodeRegionVariant(image,maxEdge,quality,preferredType="image/webp"){
   const width=image.width||image.naturalWidth;
   const height=image.height||image.naturalHeight;
+  if(!width||!height)throw new Error("图片尺寸无效");
   const scale=Math.min(1,maxEdge/Math.max(width,height));
   const canvas=document.createElement("canvas");
   canvas.width=Math.max(1,Math.round(width*scale));
   canvas.height=Math.max(1,Math.round(height*scale));
   const context=canvas.getContext("2d",{alpha:false});
+  if(!context)throw new Error("Safari 无法创建图片压缩画布");
   context.imageSmoothingEnabled=true;
   context.imageSmoothingQuality="high";
   context.drawImage(image,0,0,canvas.width,canvas.height);
-  try{return await canvasBlob(canvas,"image/webp",quality)}
-  catch(error){return canvasBlob(canvas,"image/jpeg",Math.min(.92,quality+.05))}
+  if(preferredType==="image/webp"){
+    try{
+      const webp=await canvasBlob(canvas,"image/webp",quality);
+      // Safari may silently return image/png when WebP encoding is unavailable.
+      if(validRegionImageBlob(webp,"image/webp"))return webp;
+      console.warn("WebP encoding unavailable; falling back to JPEG",{returnedType:webp?.type,size:webp?.size});
+    }catch(error){
+      console.warn("WebP encoding failed; falling back to JPEG",error);
+    }
+  }
+  const jpeg=await canvasBlob(canvas,"image/jpeg",Math.min(.92,quality+.05));
+  if(!validRegionImageBlob(jpeg,"image/jpeg")){
+    throw new Error(`浏览器返回了无效的压缩 Blob（${jpeg?.type||"unknown"} · ${jpeg?.size||0} bytes）`);
+  }
+  return jpeg;
 }
 
 async function compressRegionImage(file){
@@ -2593,9 +2662,13 @@ async function compressRegionImage(file){
         if(main.size<=file.size)break;
       }
     }
-    const thumbnail=await encodeRegionVariant(image,REGION_THUMB_MAX_EDGE,REGION_THUMB_QUALITY);
+    const thumbnail=await encodeRegionVariant(image,REGION_THUMB_MAX_EDGE,REGION_THUMB_QUALITY,main.type);
+    if(!["image/webp","image/jpeg"].includes(main.type)||!["image/webp","image/jpeg"].includes(thumbnail.type)){
+      throw new Error(`压缩格式不受支持（主图 ${main.type||"unknown"}，缩略图 ${thumbnail.type||"unknown"}）`);
+    }
     const extension=main.type==="image/webp"?"webp":"jpg";
-    return{main,thumbnail,extension,originalSize:file.size};
+    const thumbnailExtension=thumbnail.type==="image/webp"?"webp":"jpg";
+    return{main,thumbnail,extension,thumbnailExtension,originalSize:file.size};
   }finally{image.close?.()}
 }
 
@@ -2615,25 +2688,35 @@ function fileSizeLabel(bytes){
 }
 
 async function uploadPreparedRegionPhoto(file,prepared,index,total){
-  if(!regionOwnerMode())throw new Error("主人身份未验证");
+  if(!regionOwnerMode())throw regionStageError("主人身份验证失败",new Error(regionOwnerError||"当前登录用户不是 zuoyu owner"));
+  if(!validRegionImageBlob(prepared.main,prepared.main.type))throw regionStageError("主图压缩校验失败",new Error("主图 Blob 为空或 MIME 无效"));
+  if(!validRegionImageBlob(prepared.thumbnail,prepared.thumbnail.type))throw regionStageError("缩略图压缩校验失败",new Error("缩略图 Blob 为空或 MIME 无效"));
   const stamp=Date.now();
   const id=crypto.randomUUID();
   const base=`${cloudUser.id}/${activeRegionId}/${stamp}-${id}`;
   const mainPath=`${base}.${prepared.extension}`;
-  const thumbPath=`${base}-thumb.${prepared.extension}`;
+  const thumbPath=`${base}-thumb.${prepared.thumbnailExtension||prepared.extension}`;
   uploadStatus(`正在上传 ${index} / ${total} · ${file.name}`);
   const bucket=supabaseClient.storage.from(REGION_BUCKET);
   const mainResult=await bucket.upload(mainPath,prepared.main,{contentType:prepared.main.type,cacheControl:"31536000",upsert:false});
-  if(mainResult.error)throw mainResult.error;
+  if(mainResult.error)throw regionStageError("主图 Storage 上传失败",mainResult.error);
   const thumbResult=await bucket.upload(thumbPath,prepared.thumbnail,{contentType:prepared.thumbnail.type,cacheControl:"31536000",upsert:false});
-  if(thumbResult.error){await bucket.remove([mainPath]);throw thumbResult.error}
+  if(thumbResult.error){
+    const cleanupResult=await bucket.remove([mainPath]);
+    if(cleanupResult.error)console.error("Main image cleanup after thumbnail failure failed",{cleanupError:cleanupResult.error,mainPath});
+    throw regionStageError("缩略图 Storage 上传失败",thumbResult.error);
+  }
   const photos=regionPhotosFor(activeRegionId);
   const payload={
     id,owner_id:cloudUser.id,region_id:activeRegionId,storage_path:mainPath,thumbnail_path:thumbPath,
     sort_order:photos.length,is_cover:photos.length===0,created_at:new Date().toISOString()
   };
   const insertResult=await supabaseClient.from("region_photos").insert(payload).select("id,region_id,owner_id,storage_path,thumbnail_path,sort_order,is_cover,created_at").single();
-  if(insertResult.error){await bucket.remove([mainPath,thumbPath]);throw insertResult.error}
+  if(insertResult.error){
+    const cleanupResult=await bucket.remove([mainPath,thumbPath]);
+    if(cleanupResult.error)console.error("Storage cleanup after region_photos insert failure failed",{cleanupError:cleanupResult.error,mainPath,thumbPath});
+    throw regionStageError("region_photos 写入失败",insertResult.error);
+  }
   regionPhotos.push(insertResult.data||payload);
   return prepared;
 }
@@ -2641,7 +2724,13 @@ async function uploadPreparedRegionPhoto(file,prepared,index,total){
 async function processRegionFiles(files){
   files=Array.from(files||[]);
   if(!files.length||!activeRegionId)return;
-  if(!regionOwnerMode())return toast("请先登录主人云存档");
+  const ownerValid=await verifyRegionOwner();
+  if(!ownerValid){
+    const message=regionOwnerError||"主人身份验证失败：请重新登录云存档";
+    uploadStatus(message,{error:true});
+    toast("主人登录验证失败");
+    return;
+  }
   regionUploadFailures=[];
   let savedBytes=0;
   let originalBytes=0;
@@ -2649,18 +2738,29 @@ async function processRegionFiles(files){
     const file=files[index];
     try{
       uploadStatus(`正在处理图片...\n正在压缩 ${index+1} / ${files.length} · ${file.name}`);
-      const prepared=await compressRegionImage(file);
+      let prepared;
+      try{prepared=await compressRegionImage(file)}
+      catch(error){throw regionStageError("压缩失败",error)}
       await uploadPreparedRegionPhoto(file,prepared,index+1,files.length);
       originalBytes+=prepared.originalSize;
       savedBytes+=prepared.main.size+prepared.thumbnail.size;
     }catch(error){
-      console.error("Region photo upload failed",file.name,error);
-      regionUploadFailures.push(file);
+      const diagnostic=error?.regionStage?error.message:regionStageError("上传失败",error).message;
+      console.error("Region photo upload failed",{
+        file:{name:file.name,type:file.type,size:file.size},
+        stage:error?.regionStage||"上传失败",
+        diagnostic,
+        status:error?.status||regionErrorStatus(error),
+        code:error?.code||error?.cause?.code||"",
+        error,
+        cause:error?.cause
+      });
+      regionUploadFailures.push({file,diagnostic});
     }
     renderRegionDetail();
   }
   if(regionUploadFailures.length){
-    uploadStatus(`${regionUploadFailures.length} 张上传失败：${regionUploadFailures.map(file=>file.name).join("、")}。其他照片已继续处理。`,{error:true,retry:true});
+    uploadStatus(`${regionUploadFailures.length} 张上传失败\n${regionUploadFailures.map(item=>`${item.file.name}：${item.diagnostic}`).join("\n")}\n其他照片已继续处理。`,{error:true,retry:true});
   }else{
     const saving=originalBytes?Math.max(0,Math.round((1-savedBytes/originalBytes)*100)):0;
     uploadStatus(`上传完成 ✓\n原始大小：${fileSizeLabel(originalBytes)} · 上传大小：${fileSizeLabel(savedBytes)} · 已节省：${saving}%`);
@@ -2669,7 +2769,7 @@ async function processRegionFiles(files){
 }
 
 async function retryRegionUploads(){
-  const files=regionUploadFailures.slice();
+  const files=regionUploadFailures.map(item=>item.file||item);
   regionUploadFailures=[];
   await processRegionFiles(files);
 }

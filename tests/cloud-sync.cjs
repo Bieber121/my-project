@@ -97,6 +97,7 @@ const fakeSupabase = `
       removeChannel: channel => { channel?.unsubscribe(); },
       auth: {
         getSession: async () => ({ data: { session: { user } }, error: null }),
+        getUser: async () => ({ data: { user }, error: null }),
         signInWithPassword: async () => ({ data: { user, session: { user } }, error: null }),
         signOut: async () => ({ error: null }),
         onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } })

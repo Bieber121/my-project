@@ -19,6 +19,7 @@ function fakeSupabase(seed = {}) {
     const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));
     const db = ${JSON.stringify(seed.db || { life_saves: null, public_state: null, region_details: [], region_photos: [] })};
     const uploaded = new Map();
+    const failures = {};
     const matches = (row, filters) => filters.every(([key, value]) => String(row?.[key]) === String(value));
     class Query {
       constructor(table) { this.table = table; this.op = 'select'; this.filters = []; this.payload = null; }
@@ -54,12 +55,16 @@ function fakeSupabase(seed = {}) {
     class Channel { on() { return this; } subscribe(callback) { queueMicrotask(() => callback?.('SUBSCRIBED')); return this; } unsubscribe() {} }
     const transparent = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><rect width="32" height="32" fill="%23888"/></svg>');
     const storage = {
-      upload: async (name, blob) => { uploaded.set(name, blob); return { data: { path: name }, error: null }; },
+      upload: async (name, blob) => {
+        const failure = name.includes('-thumb.') ? failures.thumbnail : failures.main;
+        if (failure) return { data: null, error: failure };
+        uploaded.set(name, blob); return { data: { path: name }, error: null };
+      },
       remove: async names => { names.forEach(name => uploaded.delete(name)); return { data: names, error: null }; },
       getPublicUrl: name => ({ data: { publicUrl: uploaded.has(name) ? URL.createObjectURL(uploaded.get(name)) : transparent } })
     };
     const user = { id: 'owner-1', email: 'owner@example.test' };
-    window.__regionFake = { db, uploaded };
+    window.__regionFake = { db, uploaded, failures };
     window.heic2any = async ({ blob }) => blob;
     window.supabase = { createClient() { return {
       from: table => new Query(table), storage: { from: () => storage },
@@ -75,6 +80,7 @@ function fakeSupabase(seed = {}) {
       channel: () => new Channel(), removeChannel: () => {},
       auth: {
         getSession: async () => ({ data: { session: ${seed.preview ? 'null' : '{ user }'} }, error: null }),
+        getUser: async () => ({ data: { user: ${seed.preview ? 'null' : 'user'} }, error: null }),
         signInWithPassword: async () => ({ data: { user, session: { user } }, error: null }),
         signOut: async () => ({ error: null }), onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } })
       }
@@ -137,9 +143,15 @@ async function makePage(browser, base, seed, mobile = false) {
       const jpeg = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', .9));
       const heic = await compressRegionImage(new File([jpeg], 'iphone.heic', { type: 'image/heic' }));
       const heicBitmap = await createImageBitmap(heic.main);
-      return { count: entries.length, mainType: main[0][1].type, mainEdge: Math.max(mainBitmap.width, mainBitmap.height), thumbEdge: Math.max(thumbBitmap.width, thumbBitmap.height), heicType: heic.main.type, heicEdge: Math.max(heicBitmap.width, heicBitmap.height) };
+      const nativeToBlob = HTMLCanvasElement.prototype.toBlob;
+      HTMLCanvasElement.prototype.toBlob = function(callback, type, quality) {
+        return nativeToBlob.call(this, callback, type === 'image/webp' ? 'image/png' : type, quality);
+      };
+      const safariFallback = await compressRegionImage(new File([jpeg], 'safari.png', { type: 'image/png' }));
+      HTMLCanvasElement.prototype.toBlob = nativeToBlob;
+      return { count: entries.length, mainType: main[0][1].type, mainEdge: Math.max(mainBitmap.width, mainBitmap.height), thumbEdge: Math.max(thumbBitmap.width, thumbBitmap.height), heicType: heic.main.type, heicEdge: Math.max(heicBitmap.width, heicBitmap.height), safariFallbackType: safariFallback.main.type, safariThumbType: safariFallback.thumbnail.type };
     });
-    assert.deepEqual(compression, { count: 4, mainType: 'image/webp', mainEdge: 2560, thumbEdge: 720, heicType: 'image/webp', heicEdge: 640 });
+    assert.deepEqual(compression, { count: 4, mainType: 'image/webp', mainEdge: 2560, thumbEdge: 720, heicType: 'image/webp', heicEdge: 640, safariFallbackType: 'image/jpeg', safariThumbType: 'image/jpeg' });
 
     await owner.page.locator('[data-region-photo-index="1"]').click();
     await owner.page.locator('.lightbox-action.cover').click();
@@ -147,6 +159,26 @@ async function makePage(browser, base, seed, mobile = false) {
     owner.page.once('dialog', dialog => dialog.accept());
     await owner.page.locator('.lightbox-action.danger').click();
     await owner.page.waitForFunction(() => regionPhotosFor('japan').length === 1 && regionPhotosFor('japan')[0].is_cover);
+
+    const stagedErrors = await owner.page.evaluate(async () => {
+      const canvas = document.createElement('canvas'); canvas.width = 120; canvas.height = 90;
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+      const file = new File([blob], 'IMG_0027.png', { type: 'image/png' });
+      const before = window.__regionFake.uploaded.size;
+      window.__regionFake.failures.main = { message: 'new row violates row-level security policy', statusCode: 403, code: '403' };
+      await processRegionFiles([file]);
+      const mainMessage = regionUploadMessage;
+      delete window.__regionFake.failures.main;
+      window.__regionFake.failures.thumbnail = { message: 'thumbnail policy denied', statusCode: 400, code: 'StorageApiError' };
+      await processRegionFiles([file]);
+      const thumbnailMessage = regionUploadMessage;
+      const after = window.__regionFake.uploaded.size;
+      delete window.__regionFake.failures.thumbnail;
+      return { mainMessage, thumbnailMessage, before, after };
+    });
+    assert.match(stagedErrors.mainMessage, /主图 Storage 上传失败：new row violates row-level security policy（HTTP 403/);
+    assert.match(stagedErrors.thumbnailMessage, /缩略图 Storage 上传失败：thumbnail policy denied（HTTP 400/);
+    assert.equal(stagedErrors.after, stagedErrors.before, 'failed thumbnail cleans up the uploaded main image');
 
     const snapshot = await owner.page.evaluate(() => ({ db: JSON.parse(JSON.stringify(window.__regionFake.db)), state: JSON.parse(JSON.stringify(state)) }));
     snapshot.db.public_state = { slug: 'zuoyu', owner_id: 'owner-1', state: snapshot.state, updated_at: new Date().toISOString() };
@@ -164,7 +196,7 @@ async function makePage(browser, base, seed, mobile = false) {
     assert(Math.abs(geometry.bottom - geometry.viewport) < 1, 'mobile archive is a bottom sheet');
     assert.equal(geometry.width, geometry.screen, 'mobile has no horizontal overflow');
     await preview.page.screenshot({ path: path.join(output, 'mobile-preview-region.png') });
-    console.log('PASS region details, note editing, WebP compression, thumbnails, upload, cover, deletion, preview read-only, and mobile layout');
+    console.log('PASS owner verification, Safari PNG fallback, staged Supabase errors, thumbnails, upload cleanup, cover, deletion, preview read-only, and mobile layout');
     console.log('Screenshots:', output);
     await preview.context.close();
     await owner.context.close();
