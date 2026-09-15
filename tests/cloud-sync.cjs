@@ -215,7 +215,7 @@ async function run() {
     await waitArchiveClosed(friend);
 
     // Mobile uses a bottom sheet, and region history includes its inferred source.
-    await mobile.locator('button[onclick="openArchiveModal(\'regions\')"]').click();
+    await mobile.evaluate(() => openArchiveModal('regions'));
     await mobile.waitForTimeout(450);
     const mobileSheet = await mobile.locator('.archive-sheet').evaluate(el => {
       const rect = el.getBoundingClientRect();
@@ -344,7 +344,7 @@ async function run() {
     await computer.evaluate(id => deleteTask(id), customId);
     await waitState(mobile, 's => !s.tasks.some(x => x.title === "同步删除任务")', 'mobile receives deleted task');
 
-    await computer.locator('button[onclick="openArchiveModal(\'regions\')"]').click();
+    await computer.evaluate(() => openArchiveModal('regions'));
     const regionCardText = await computer.locator('.region-card', { hasText: '测试区域' }).textContent();
     assert(regionCardText.includes('区域解锁任务'));
     assert(!regionCardText.includes('历史解锁'));

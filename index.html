@@ -213,6 +213,58 @@ body.modal-open{overflow:hidden}
 .stat-card-button:active{transform:translateY(-1px) scale(.985)}
 .stat-card-button:focus-visible{outline:3px solid rgba(0,113,227,.28);outline-offset:3px}
 
+/* ---------- Regions showcase ---------- */
+.regions-section{padding-top:54px}
+.regions-grid{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px
+}
+.regions-grid.single{grid-template-columns:1fr}
+.regions-grid[data-count="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+.region-showcase-card{
+  --region-cover-position:center;
+  position:relative;isolation:isolate;overflow:hidden;min-height:410px;padding:0;
+  border:1px solid rgba(17,17,20,.07);border-radius:34px;text-align:left;color:#17171a;
+  font:inherit;appearance:none;-webkit-appearance:none;cursor:pointer;
+  background:
+    radial-gradient(circle at 80% 18%,rgba(0,113,227,.13),transparent 30%),
+    linear-gradient(145deg,#fbfbfd 0%,#eef3f8 52%,#e7eaef 100%);
+  background-size:cover;background-position:var(--region-cover-position);
+  box-shadow:0 20px 55px rgba(0,0,0,.08);
+  transition:transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .28s ease,border-color .28s ease
+}
+.regions-grid.single .region-showcase-card{min-height:520px}
+.region-showcase-card::after{
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.02) 8%,rgba(18,23,31,.08) 100%)
+}
+.region-showcase-card.has-cover{color:#fff;border-color:rgba(255,255,255,.13)}
+.region-showcase-card.has-cover::after{
+  background:linear-gradient(180deg,rgba(0,0,0,.05) 18%,rgba(0,0,0,.28) 54%,rgba(0,0,0,.78) 100%)
+}
+.region-showcase-card:hover{transform:translateY(-5px);border-color:rgba(0,113,227,.16);box-shadow:0 28px 70px rgba(0,0,0,.14)}
+.region-showcase-card:active{transform:translateY(-1px) scale(.992)}
+.region-showcase-card:focus-visible{outline:3px solid rgba(0,113,227,.3);outline-offset:4px}
+.region-showcase-content{
+  position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;justify-content:flex-end;
+  padding:clamp(28px,4vw,48px)
+}
+.region-showcase-en{font-size:12px;font-weight:800;letter-spacing:.16em;opacity:.68;margin-bottom:10px}
+.region-showcase-name{margin:0;font-size:clamp(42px,6vw,72px);line-height:.95;letter-spacing:-.055em}
+.region-showcase-meta{display:flex;flex-wrap:wrap;gap:7px 16px;margin-top:18px;font-size:13px;line-height:1.5;color:#65656a}
+.region-showcase-card.has-cover .region-showcase-meta{color:rgba(255,255,255,.78)}
+.region-showcase-source{width:100%}
+.region-showcase-footer{
+  display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:28px;padding-top:18px;
+  border-top:1px solid rgba(17,17,20,.1);font-size:13px;font-weight:720
+}
+.region-showcase-card.has-cover .region-showcase-footer{border-color:rgba(255,255,255,.22)}
+.region-showcase-link{font-size:14px;transition:transform .25s ease}
+.region-showcase-card:hover .region-showcase-link{transform:translateX(3px)}
+.regions-empty{
+  padding:52px 28px;border:1px solid rgba(17,17,20,.07);border-radius:28px;background:#f7f7f9;
+  color:var(--muted);text-align:center
+}
+
 /* ---------- Main quest ---------- */
 .quest-showcase{
   position:relative;overflow:hidden;min-height:520px;
@@ -803,6 +855,7 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
 .japan-mini-copy h4{margin:0;font-size:28px;line-height:1.02;letter-spacing:-.035em}
 /* ---------- Responsive ---------- */
 @media (max-width:820px){
+  .regions-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .japan-mini-grid{grid-template-columns:1fr}
   .japan-mini-card{min-height:360px}
   .dashboard-grid{grid-template-columns:1fr}
@@ -812,6 +865,12 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
 }
 @media (max-width:620px){
   .section{padding:88px 16px}
+  .regions-section{padding-top:38px}
+  .regions-grid,.regions-grid[data-count]{grid-template-columns:1fr;gap:14px}
+  .region-showcase-card,.regions-grid.single .region-showcase-card{min-height:430px;border-radius:28px}
+  .region-showcase-content{padding:28px 24px}
+  .region-showcase-card:hover{transform:none}
+  .region-showcase-card:active{transform:scale(.985)}
   .stat-card{min-height:128px;padding:24px 20px}
   .stat-card-button::after{right:14px;top:14px}
   .archive-modal{align-items:flex-end;padding:0;background:rgba(0,0,0,.48)}
@@ -933,13 +992,24 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
           <div class="value" id="titleValue">1</div>
           <div class="meta">已解锁</div>
         </button>
-        <button type="button" class="panel stat-card stat-card-button reveal reveal-delay-2" onclick="openArchiveModal('regions')" aria-haspopup="dialog" aria-controls="archiveModal">
+        <button type="button" class="panel stat-card stat-card-button reveal reveal-delay-2" onclick="goTo('regionsSection')" aria-label="查看已解锁区域">
           <div class="panel-label">区域</div>
           <div class="value" id="regionValue">0</div>
           <div class="meta">已解锁</div>
         </button>
       </div>
     </div>
+  </div>
+</section>
+
+<section class="section regions-section" id="regionsSection">
+  <div class="section-inner">
+    <div class="section-head reveal">
+      <div class="kicker">REGIONS</div>
+      <h2>走过的地方</h2>
+      <p class="section-lead">真正抵达过的地方 才会出现在这里</p>
+    </div>
+    <div class="regions-grid" id="regionsGrid" aria-live="polite"></div>
   </div>
 </section>
 
@@ -1286,6 +1356,7 @@ const REGION_THUMB_MAX_EDGE=720;
 const REGION_WEBP_QUALITY=.85;
 const REGION_THUMB_QUALITY=.78;
 const HEIC_CONVERTER_SRC="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js";
+const REGION_LABELS={japan:"JAPAN",hongkong:"HONG KONG",macau:"MACAU",france:"FRANCE"};
 
 let supabaseClient=null;
 let cloudUser=null;
@@ -1971,6 +2042,7 @@ function subscribeRegionData(){
       if(row?.region_id)regionDetails.set(row.region_id,row);
       else if(payload.old?.region_id)regionDetails.delete(payload.old.region_id);
       regionDataLoaded=true;
+      renderRegions();
       if(document.getElementById("archiveModal")?.classList.contains("open"))renderArchiveContent();
     }).subscribe(status=>{if(["CHANNEL_ERROR","TIMED_OUT"].includes(status))refreshRegionData({force:true})});
   regionPhotosChannel=supabaseClient.channel("region-photos-"+PUBLIC_STATE_SLUG)
@@ -1981,6 +2053,7 @@ function subscribeRegionData(){
         if(index>=0)regionPhotos[index]=row;else regionPhotos.push(row);
       }else if(payload.old?.id)regionPhotos=regionPhotos.filter(photo=>photo.id!==payload.old.id);
       regionDataLoaded=true;
+      renderRegions();
       if(document.getElementById("archiveModal")?.classList.contains("open"))renderArchiveContent();
       if(document.getElementById("regionLightbox")?.classList.contains("open"))renderRegionLightbox();
     }).subscribe(status=>{if(["CHANNEL_ERROR","TIMED_OUT"].includes(status))refreshRegionData({force:true})});
@@ -2084,6 +2157,7 @@ async function initCloud(){
     updateCloudUI();
     setupCloudLifecycle();
     await loadPublicPreview({force:true});
+    await refreshRegionData({force:true});
     subscribePublicState();
     return;
   }
@@ -2104,6 +2178,7 @@ async function initCloud(){
   if(cloudUser){
     await bootstrapCloudForUser();
     await verifyRegionOwner();
+    await refreshRegionData({force:true});
     subscribeOwnerState();
   }else{
     setCloudStatus("未登录 · 本地存档","muted");
@@ -2127,6 +2202,7 @@ async function initCloud(){
       setTimeout(async()=>{
         await bootstrapCloudForUser();
         await verifyRegionOwner();
+        await refreshRegionData({force:true});
         subscribeOwnerState();
       },0);
     }
@@ -2617,6 +2693,64 @@ function regionCoverFor(regionId){
   return photos.find(photo=>photo.is_cover)||photos[0]||null;
 }
 
+function regionEnglishLabel(record,regionId){
+  if(REGION_LABELS[regionId])return REGION_LABELS[regionId];
+  const fallback=String(record?.englishName||record?.name||regionId||"REGION").trim();
+  return fallback.toLocaleUpperCase("en");
+}
+
+function formatRegionShowcaseDate(value){
+  if(!value)return"历史解锁";
+  const text=String(value);
+  const match=text.match(/^(\d{4})[-/.](\d{1,2})/);
+  if(match)return`${match[1]}.${String(match[2]).padStart(2,"0")} 解锁`;
+  const date=new Date(value);
+  return Number.isNaN(date.getTime())?"历史解锁":`${date.getFullYear()}.${String(date.getMonth()+1).padStart(2,"0")} 解锁`;
+}
+
+function renderRegions(){
+  const grid=document.getElementById("regionsGrid");
+  if(!grid)return;
+  const records=Array.isArray(state.regionRecords)?state.regionRecords:[];
+  grid.className=`regions-grid${records.length===1?" single":records.length>1?" multi":""}`;
+  grid.dataset.count=String(records.length);
+  if(!records.length){
+    grid.innerHTML='<div class="regions-empty">尚未解锁区域<br><small>真正抵达后 这里会留下你的旅行档案</small></div>';
+    return;
+  }
+  const cards=records.map(record=>{
+    const regionId=record.regionId||regionIdForName(record.name);
+    const photos=regionPhotosFor(regionId);
+    const cover=regionCoverFor(regionId);
+    const coverUrl=cover?photoPublicUrl(cover.thumbnail_path||cover.storage_path):"";
+    return{record,regionId,photos,cover,coverUrl};
+  });
+  grid.innerHTML=cards.map(({record,regionId,photos,cover,coverUrl})=>`
+    <button type="button" class="region-showcase-card reveal${coverUrl?" has-cover":""}"
+      data-showcase-region-id="${escapeHtml(regionId)}" data-cover-photo-id="${escapeHtml(cover?.id||"")}"
+      aria-label="查看${escapeHtml(record.name)}区域档案">
+      <span class="region-showcase-content">
+        <span class="region-showcase-en">${escapeHtml(regionEnglishLabel(record,regionId))}</span>
+        <strong class="region-showcase-name">${escapeHtml(record.name)}</strong>
+        <span class="region-showcase-meta">
+          <span>${escapeHtml(formatRegionShowcaseDate(record.unlockedAt))}</span>
+          <span class="region-showcase-source">${escapeHtml(record.source||"历史解锁")}</span>
+        </span>
+        <span class="region-showcase-footer">
+          <span>${photos.length?`${photos.length} 张照片`:"暂无照片"}</span>
+          <span class="region-showcase-link">查看档案 →</span>
+        </span>
+      </span>
+    </button>`).join("");
+  Array.from(grid.children).forEach((card,index)=>{
+    const {record,coverUrl}=cards[index];
+    const requested=String(record.coverPosition||"center").toLowerCase();
+    card.style.setProperty("--region-cover-position",["left","center","right"].includes(requested)?requested:"center");
+    if(coverUrl)card.style.backgroundImage=`url("${coverUrl.replace(/["\\]/g,"\\$&")}")`;
+  });
+  if(supabaseClient&&!regionDataLoaded&&!regionDataLoading&&!regionDataError)queueMicrotask(()=>refreshRegionData());
+}
+
 async function refreshRegionData({force=false}={}){
   if(!supabaseClient||regionDataLoading||(!force&&regionDataLoaded))return;
   regionDataLoading=true;
@@ -2639,6 +2773,7 @@ async function refreshRegionData({force=false}={}){
     console.error("Region data load failed",error);
   }finally{
     regionDataLoading=false;
+    renderRegions();
     if(document.getElementById("archiveModal")?.classList.contains("open")&&["regions","region-detail"].includes(archiveView))renderArchiveContent();
   }
 }
@@ -3080,6 +3215,7 @@ function renderFinal(){
 }
 function render(){
   renderHeader();
+  renderRegions();
   renderAttrs();
   renderTasks();
   renderTimeline();
@@ -3313,18 +3449,22 @@ function goTo(id){
   if(PAGE_ROUTES.includes(id)&&navigatePage)navigatePage(id);
   else document.getElementById(id)?.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"instant":"smooth",block:"start"});
 }
+function prepareArchiveModalOpen(){
+  const modal=document.getElementById("archiveModal");
+  if(!modal.classList.contains("open"))archiveLastFocus=document.activeElement;
+  clearTimeout(archiveCloseTimer);
+  modal.classList.remove("closing");
+  modal.classList.add("open");
+  modal.setAttribute("aria-hidden","false");
+  document.body.classList.add("modal-open");
+  return modal;
+}
 function openArchiveModal(view){
   if(!["records","titles","regions"].includes(view))return;
   archiveView=view;
   activeRegionId=null;
   if(view!=="records")archiveRecordFilter="all";
-  archiveLastFocus=document.activeElement;
-  clearTimeout(archiveCloseTimer);
-  const modal=document.getElementById("archiveModal");
-  modal.classList.remove("closing");
-  modal.classList.add("open");
-  modal.setAttribute("aria-hidden","false");
-  document.body.classList.add("modal-open");
+  const modal=prepareArchiveModalOpen();
   renderArchiveContent();
   document.getElementById("archiveBody").scrollTop=0;
   requestAnimationFrame(()=>modal.querySelector(".close-btn")?.focus({preventScroll:true}));
@@ -3332,6 +3472,7 @@ function openArchiveModal(view){
 async function openRegionDetail(regionId){
   const record=regionRecordById(regionId);
   if(!record)return;
+  const modal=prepareArchiveModalOpen();
   if(activeRegionId!==regionId){
     regionUploadFailures=[];
     regionUploadMessage="";
@@ -3342,6 +3483,7 @@ async function openRegionDetail(regionId){
   archiveView="region-detail";
   renderArchiveContent();
   document.getElementById("archiveBody").scrollTop=0;
+  requestAnimationFrame(()=>modal.querySelector(".close-btn")?.focus({preventScroll:true}));
   await refreshRegionData({force:true});
 }
 function returnToRegionArchive(){
@@ -3401,6 +3543,7 @@ async function setRegionCover(photoId){
   const result=await supabaseClient.rpc("set_region_cover",{p_region_id:activeRegionId,p_photo_id:photoId});
   if(result.error){console.error(result.error);toast("设置封面失败");return}
   regionPhotos.forEach(photo=>{if(photo.region_id===activeRegionId)photo.is_cover=photo.id===photoId});
+  renderRegions();
   renderRegionDetail();
   renderRegionLightbox();
   toast("区域封面已更新");
@@ -3422,6 +3565,7 @@ async function deleteRegionPhoto(photoId){
   const remaining=regionPhotosFor(activeRegionId);
   if(photo.is_cover&&remaining.length&&!remaining.some(item=>item.is_cover))remaining[0].is_cover=true;
   if(regionLightboxIndex>=remaining.length)regionLightboxIndex=Math.max(0,remaining.length-1);
+  renderRegions();
   renderRegionDetail();
   if(remaining.length)renderRegionLightbox();else closeRegionLightbox();
   toast("照片已删除");
@@ -3479,6 +3623,10 @@ document.getElementById("archiveBody").addEventListener("click",event=>{
   if(region)openRegionDetail(region.dataset.regionId);
   const photo=event.target.closest("[data-region-photo-index]");
   if(photo)openRegionLightbox(Number(photo.dataset.regionPhotoIndex));
+});
+document.getElementById("regionsGrid").addEventListener("click",event=>{
+  const card=event.target.closest("[data-showcase-region-id]");
+  if(card)openRegionDetail(card.dataset.showcaseRegionId);
 });
 document.getElementById("archiveBack").addEventListener("click",returnToRegionArchive);
 document.getElementById("regionPhotoInput").addEventListener("change",event=>{

@@ -111,8 +111,16 @@ async function makePage(browser, base, seed, mobile = false) {
   try {
     const owner = await makePage(browser, base, {}, false);
     await owner.page.waitForFunction(() => cloudUser?.id === 'owner-1' && regionOwnerVerified);
-    await owner.page.evaluate(() => openArchiveModal('regions'));
-    await owner.page.locator('[data-region-id="japan"]').click();
+    await owner.page.waitForSelector('[data-showcase-region-id="japan"]');
+    const initialShowcase = owner.page.locator('[data-showcase-region-id="japan"]');
+    assert.equal(await initialShowcase.count(), 1, 'one unlocked region renders as one showcase card');
+    assert.match(await initialShowcase.textContent(), /JAPAN[\s\S]*日本[\s\S]*2026\.08 解锁[\s\S]*七日海外独立远征（日本）[\s\S]*暂无照片[\s\S]*查看档案/);
+    const singleGeometry = await initialShowcase.evaluate(el => ({ card: el.getBoundingClientRect().width, grid: el.parentElement.getBoundingClientRect().width }));
+    assert(singleGeometry.card > 900 && Math.abs(singleGeometry.card - singleGeometry.grid) < 1, 'single region uses a wide card');
+    await owner.page.locator('button[onclick="goTo(\'regionsSection\')"]').click();
+    await owner.page.waitForFunction(() => Math.abs(document.querySelector('#regionsSection').getBoundingClientRect().top) < 20);
+    await owner.page.screenshot({ path: path.join(output, 'desktop-regions-showcase.png') });
+    await initialShowcase.click();
     await owner.page.waitForSelector('.region-detail');
     assert.equal(await owner.page.locator('.region-upload-btn').count(), 1, 'owner sees upload control');
     assert.equal(await owner.page.locator('#regionNoteInput').count(), 1, 'owner sees note editor');
@@ -131,6 +139,8 @@ async function makePage(browser, base, seed, mobile = false) {
     });
     await owner.page.waitForFunction(() => regionPhotosFor('japan').length === 2);
     assert.match(await owner.page.locator('#regionUploadStatus').textContent(), /上传完成/);
+    assert.match(await owner.page.locator('[data-showcase-region-id="japan"]').textContent(), /2 张照片/);
+    assert(await owner.page.locator('[data-showcase-region-id="japan"]').evaluate(el => el.classList.contains('has-cover') && getComputedStyle(el).backgroundImage !== 'none'));
     await owner.page.screenshot({ path: path.join(output, 'desktop-region-detail.png') });
     const compression = await owner.page.evaluate(async () => {
       const entries = [...window.__regionFake.uploaded.entries()];
@@ -154,11 +164,15 @@ async function makePage(browser, base, seed, mobile = false) {
     assert.deepEqual(compression, { count: 4, mainType: 'image/webp', mainEdge: 2560, thumbEdge: 720, heicType: 'image/webp', heicEdge: 640, safariFallbackType: 'image/jpeg', safariThumbType: 'image/jpeg' });
 
     await owner.page.locator('[data-region-photo-index="1"]').click();
+    const secondPhotoId = await owner.page.evaluate(() => regionPhotosFor('japan')[1].id);
     await owner.page.locator('.lightbox-action.cover').click();
     await owner.page.waitForFunction(() => regionPhotosFor('japan')[1].is_cover);
+    assert.equal(await owner.page.locator('[data-showcase-region-id="japan"]').getAttribute('data-cover-photo-id'), secondPhotoId, 'cover change immediately updates showcase card');
     owner.page.once('dialog', dialog => dialog.accept());
     await owner.page.locator('.lightbox-action.danger').click();
     await owner.page.waitForFunction(() => regionPhotosFor('japan').length === 1 && regionPhotosFor('japan')[0].is_cover);
+    const fallbackCoverId = await owner.page.evaluate(() => regionPhotosFor('japan')[0].id);
+    assert.equal(await owner.page.locator('[data-showcase-region-id="japan"]').getAttribute('data-cover-photo-id'), fallbackCoverId, 'cover deletion immediately selects the remaining cover');
 
     const stagedErrors = await owner.page.evaluate(async () => {
       const canvas = document.createElement('canvas'); canvas.width = 120; canvas.height = 90;
@@ -180,12 +194,26 @@ async function makePage(browser, base, seed, mobile = false) {
     assert.match(stagedErrors.thumbnailMessage, /缩略图 Storage 上传失败：thumbnail policy denied（HTTP 400/);
     assert.equal(stagedErrors.after, stagedErrors.before, 'failed thumbnail cleans up the uploaded main image');
 
+    const multiLayout = await owner.page.evaluate(() => {
+      state.regionRecords.push(
+        { name: '香港', regionId: 'hongkong', unlockedAt: '2026-09-01T00:00:00Z', source: '城市探索' },
+        { name: '法国', regionId: 'france', unlockedAt: null, source: '历史解锁' }
+      );
+      renderRegions();
+      const grid = document.getElementById('regionsGrid');
+      return { count: grid.children.length, columns: getComputedStyle(grid).gridTemplateColumns.split(' ').length };
+    });
+    assert.deepEqual(multiLayout, { count: 3, columns: 3 }, 'multiple regions form a desktop grid');
+    await owner.page.evaluate(() => { state.regionRecords = state.regionRecords.filter(record => record.regionId === 'japan'); renderRegions(); });
+
     const snapshot = await owner.page.evaluate(() => ({ db: JSON.parse(JSON.stringify(window.__regionFake.db)), state: JSON.parse(JSON.stringify(state)) }));
     snapshot.db.public_state = { slug: 'zuoyu', owner_id: 'owner-1', state: snapshot.state, updated_at: new Date().toISOString() };
     const preview = await makePage(browser, base, { db: snapshot.db, preview: true }, true);
     await preview.page.waitForFunction(() => knownPublicUpdatedAt && state.regionRecords.some(row => row.regionId === 'japan'));
-    await preview.page.evaluate(() => openArchiveModal('regions'));
-    await preview.page.locator('[data-region-id="japan"]').click();
+    await preview.page.waitForSelector('[data-showcase-region-id="japan"]');
+    const mobileShowcase = await preview.page.locator('#regionsGrid').evaluate(el => ({ count: el.children.length, columns: getComputedStyle(el).gridTemplateColumns.split(' ').length, width: document.documentElement.scrollWidth, screen: innerWidth }));
+    assert.deepEqual(mobileShowcase, { count: 1, columns: 1, width: 390, screen: 390 }, 'preview showcase is one column with no mobile overflow');
+    await preview.page.locator('[data-showcase-region-id="japan"]').click();
     await preview.page.waitForFunction(() => document.querySelector('.region-note-copy')?.textContent.includes('这里会继续生长'));
     assert.equal(await preview.page.locator('.region-upload-btn').count(), 0, 'preview has no upload control');
     assert.equal(await preview.page.locator('#regionNoteInput').count(), 0, 'preview has no editor');
