@@ -157,7 +157,82 @@ async function resetForMilestoneTask(page, id = 'milestone-test') {
     assert.deepEqual(mobileGeometry, { bottom: 844, viewport: 844, width: 390, screen: 390, columns: 1, buttonHeight: 48 });
     await page.screenshot({ path: path.join(output, 'mobile-completion.png') });
 
+    // Real iPhone widths keep a dense continuous list, expose following cards, and clear both fixed bars.
+    await page.evaluate(() => closeReward());
+    await page.waitForFunction(() => !document.getElementById('rewardOverlay').classList.contains('show'));
+    const mobileWidths = [375, 390, 393, 414, 430];
+    for (const width of mobileWidths) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.evaluate(() => {
+        document.documentElement.style.scrollBehavior = 'auto';
+        goTo('milestonesSection');
+        const card = document.querySelector('.milestone-card');
+        const topBar = document.querySelector('.site-top');
+        const targetTop = topBar.getBoundingClientRect().bottom + 10;
+        window.scrollBy(0, card.getBoundingClientRect().top - targetTop);
+      });
+      await page.waitForTimeout(80);
+      const density = await page.evaluate(() => {
+        const cards = [...document.querySelectorAll('.milestone-card')];
+        const nav = document.querySelector('.bottom-nav').getBoundingClientRect();
+        const topPill = document.querySelector('.top-pill').getBoundingClientRect();
+        const visibleTop = document.querySelector('.site-top').getBoundingClientRect().bottom;
+        const firstThree = cards.slice(0, 3).map(card => card.getBoundingClientRect());
+        const fullCards = firstThree.filter(box => box.top >= visibleTop && box.bottom <= nav.top).length;
+        const intersectingCards = firstThree.filter(box => box.bottom > visibleTop && box.top < nav.top).length;
+        const cardHeights = cards.slice(0, 5).map(card => card.getBoundingClientRect().height).sort((a, b) => a - b);
+        const probe = cards[0].cloneNode(true);
+        probe.querySelector('h4').textContent = '一次需要认真记录的跨城市长距离旅行经历';
+        probe.querySelector('p').textContent = '这是一段用于验证较长描述在小屏幕上能够自然换行并保持信息层级的文字';
+        probe.querySelector('.milestone-card-status span:first-child').textContent = '完成一次较长名称的跨城市旅行相关任务';
+        cards[0].parentElement.appendChild(probe);
+        const probeFits = probe.scrollWidth <= probe.clientWidth && document.documentElement.scrollWidth <= innerWidth;
+        probe.remove();
+        return {
+          pageWidth: document.documentElement.scrollWidth,
+          screenWidth: innerWidth,
+          fullCards,
+          intersectingCards,
+          medianCardHeight: cardHeights[Math.floor(cardHeights.length / 2)],
+          topPillHeight: topPill.height,
+          navHeight: nav.height,
+          recentPadding: parseFloat(getComputedStyle(document.querySelector('.recent-milestones')).paddingTop),
+          probeFits
+        };
+      });
+      console.log('Mobile density', width, density);
+      assert.equal(density.pageWidth, density.screenWidth, `${width}px has no horizontal scrolling`);
+      assert(density.fullCards >= 2, `${width}px shows at least two complete milestone cards`);
+      assert(density.intersectingCards >= 3, `${width}px visibly continues into a third card`);
+      assert(density.medianCardHeight <= 145, `${width}px ordinary milestone cards are about 40% shorter`);
+      assert(density.topPillHeight <= 44, `${width}px top bar is compact`);
+      assert(density.navHeight <= 60, `${width}px bottom navigation is compact`);
+      assert(density.recentPadding <= 16, `${width}px recent milestones are compact`);
+      assert(density.probeFits, `${width}px long milestone content wraps without overflow`);
+      await page.screenshot({ path: path.join(output, `milestones-${width}.png`), fullPage: false });
+      await page.evaluate(() => {
+        const last = [...document.querySelectorAll('.milestone-card')].at(-1).getBoundingClientRect();
+        const nav = document.querySelector('.bottom-nav').getBoundingClientRect();
+        window.scrollBy(0, last.bottom - nav.top + 12);
+      });
+      const lastCardClearsNav = await page.evaluate(() => {
+        const last = [...document.querySelectorAll('.milestone-card')].at(-1).getBoundingClientRect();
+        const nav = document.querySelector('.bottom-nav').getBoundingClientRect();
+        return last.bottom <= nav.top;
+      });
+      assert(lastCardClearsNav, `${width}px last card scrolls fully above the safe-area navigation`);
+    }
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.evaluate(() => {
+      goTo('home');
+      document.querySelector('.recent-milestones').scrollIntoView({ block: 'center' });
+    });
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390, 'mobile home recent milestones do not overflow');
+    await page.screenshot({ path: path.join(output, 'mobile-home-recent-milestones.png'), fullPage: false });
+
     // Reduced motion replaces movement with a short fade.
+    await page.setViewportSize({ width: 390, height: 844 });
     await page.emulateMedia({ reducedMotion: 'reduce' });
     assert.equal(await page.locator('.reward-box').evaluate(el => getComputedStyle(el).animationName), 'completionFade');
     assert.deepEqual(consoleErrors, [], 'no console or page errors');
