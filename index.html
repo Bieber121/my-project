@@ -4,7 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#000000">
-<title>佐谕人生系统 · v3.15</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<title>佐谕人生系统 · v3.16</title>
 <style>
 :root{
   --bg:#f5f5f7;
@@ -694,6 +698,33 @@ input:focus,select:focus,textarea:focus{border-color:#8fc8ff;box-shadow:0 0 0 4p
 textarea{min-height:108px;resize:vertical}
 .sheet-note{font-size:13px;color:var(--muted);line-height:1.55;margin:10px 0 0}
 .sheet-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+.field-label{display:block;margin-top:12px;color:#6e6e73;font-size:12px;font-weight:700}
+.field-label :is(input,select,textarea){margin-top:6px}
+.task-filter-select{width:auto;min-width:112px;margin:0;padding:8px 34px 8px 12px;border-radius:999px;background:#fff;font-size:12px;font-weight:700}
+.utility-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:18px}
+.utility-action{min-height:58px;border:1px solid var(--line);border-radius:17px;background:#f7f7f9;color:#1d1d1f;padding:11px 13px;text-align:left;font-weight:720}
+.utility-action span{display:block;margin-top:4px;color:var(--muted);font-size:11px;font-weight:500;line-height:1.35}
+.utility-action:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-offset:2px}
+.utility-action.danger{color:#a02b20}
+.utility-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.utility-summary div{padding:12px;border-radius:16px;background:#f5f5f7;color:var(--muted);font-size:11px}
+.utility-summary strong{display:block;margin-top:4px;color:var(--text);font-size:18px}
+.utility-note{margin:12px 0 0;color:var(--muted);font-size:12px;line-height:1.55}
+.search-results,.year-archive{display:grid;gap:10px;margin-top:14px}
+.search-group,.year-month{padding:14px;border:1px solid var(--line);border-radius:18px;background:#fff}
+.search-group h4,.year-month h4{margin:0 0 9px;font-size:14px}
+.search-result{display:block;width:100%;border:0;border-top:1px solid var(--line);background:transparent;padding:10px 0;text-align:left;color:inherit}
+.search-result:first-of-type{border-top:0}
+.search-result b{display:block;font-size:14px}.search-result span{display:block;margin-top:3px;color:var(--muted);font-size:11px}
+.year-summary{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:14px}
+.year-summary div{padding:12px;border-radius:16px;background:#f5f5f7;color:var(--muted);font-size:11px}
+.year-summary strong{display:block;margin-top:4px;color:var(--text);font-size:20px}
+.year-event{padding:9px 0;border-top:1px solid var(--line)}.year-event:first-of-type{border-top:0}
+.year-event b{display:block;font-size:14px}.year-event span{display:block;margin-top:3px;color:var(--muted);font-size:11px;line-height:1.45}
+.update-notice,.data-error-panel{position:fixed;left:50%;z-index:190;transform:translateX(-50%);width:min(calc(100% - 24px),520px);border:1px solid rgba(0,0,0,.08);border-radius:18px;background:rgba(255,255,255,.95);box-shadow:0 18px 60px rgba(0,0,0,.2);padding:13px 14px;display:none;align-items:center;justify-content:space-between;gap:12px;font-size:13px;backdrop-filter:blur(18px)}
+.update-notice{bottom:calc(88px + var(--safe-bottom))}.data-error-panel{top:calc(68px + var(--safe-top))}
+.update-notice.show,.data-error-panel.show{display:flex}
+.notice-actions{display:flex;gap:6px;flex:0 0 auto}.notice-btn{border:0;border-radius:999px;padding:8px 11px;background:#1d1d1f;color:#fff;font-size:11px;font-weight:700}.notice-btn.secondary{background:#ededf0;color:#333}
 
 /* ---------- Progress archive ---------- */
 .archive-modal{align-items:center;padding:22px;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
@@ -1017,6 +1048,10 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
   }
   .nav-item{border-radius:15px;padding:7px 5px;font-size:9px;min-height:46px}
   .nav-item svg{width:18px;height:18px;margin-bottom:2px}
+  .utility-actions{grid-template-columns:1fr}
+  .utility-summary,.year-summary{grid-template-columns:repeat(2,1fr)}
+  .modal{padding:0;align-items:flex-end}
+  .modal>.sheet:not(.archive-sheet){width:100%;max-height:calc(92dvh - var(--safe-top));border-radius:26px 26px 0 0;padding:22px 18px calc(20px + var(--safe-bottom));scroll-padding-bottom:calc(120px + var(--safe-bottom))}
 }
 @media (prefers-reduced-motion:reduce){
   *{scroll-behavior:auto!important;animation:none!important;transition:none!important}
@@ -1034,8 +1069,8 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
   <div class="top-pill">
     <div class="top-brand"><span class="top-dot"></span><span>佐谕人生系统</span></div>
     <div class="top-actions">
-      <button class="icon-btn" title="导入任务码" onclick="openImportModal()">＋</button>
-      <button class="icon-btn" title="设置" onclick="openSettingsModal()">⋯</button>
+      <button class="icon-btn" title="导入任务码" aria-label="导入任务码" onclick="openImportModal()">＋</button>
+      <button class="icon-btn" title="设置" aria-label="打开设置" onclick="openSettingsModal()">⋯</button>
     </div>
   </div>
 </div>
@@ -1232,6 +1267,9 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
     <div class="tasks-toolbar reveal">
       <div class="rank-tabs" id="rankTabs"></div>
       <div class="task-actions-top">
+        <label aria-label="任务状态筛选"><select class="task-filter-select" id="taskStatusFilter" onchange="setTaskStatusFilter(this.value)">
+          <option value="all">全部状态</option><option value="active">进行中</option><option value="completed">已完成</option>
+        </select></label>
         <button class="small-btn" onclick="openImportModal()">导入任务码</button>
         <button class="small-btn" onclick="openTaskModal()">＋ 自定义任务</button>
       </div>
@@ -1309,31 +1347,31 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
 <div class="modal" id="taskModal">
   <div class="sheet">
     <div class="sheet-top">
-      <h3>创建任务</h3>
-      <button class="close-btn" onclick="closeTaskModal()">×</button>
+      <h3 id="taskModalTitle">创建任务</h3>
+      <button class="close-btn" onclick="closeTaskModal()" aria-label="关闭任务编辑">×</button>
     </div>
     <p class="sheet-note">创建一个现实里真正要去完成的任务。</p>
-    <input id="taskName" placeholder="任务名称">
+    <label class="field-label">任务名称<input id="taskName" placeholder="任务名称" autocomplete="off"></label>
     <div class="form-grid">
-      <select id="taskRank">
+      <label class="field-label">任务等级<select id="taskRank">
         <option>E</option><option>D</option><option>C</option><option>B</option>
         <option>A</option><option>S</option><option>SS</option><option>SSS</option>
-      </select>
-      <input id="taskExp" type="number" min="1" value="120" placeholder="EXP">
+      </select></label>
+      <label class="field-label">经验记录<input id="taskExp" type="number" min="1" value="120" placeholder="EXP"></label>
     </div>
     <div class="form-grid">
-      <select id="taskAttr">
+      <label class="field-label">成长方向<select id="taskAttr">
         <option>体能</option><option>耐力</option><option>英语</option><option>日语</option>
         <option>独立行动力</option><option>社交</option><option>财务</option><option>探索</option>
         <option>陌生环境适应力</option><option>旅行规划能力</option><option>现实胆量</option><option>人生故事</option>
-      </select>
-      <input id="taskGain" type="number" min="1" value="1" placeholder="属性增加">
+      </select></label>
+      <label class="field-label">成长数值<input id="taskGain" type="number" min="1" value="1" placeholder="属性增加"></label>
     </div>
-    <input id="taskTitleReward" placeholder="解锁称号（可选）">
-    <textarea id="taskDesc" placeholder="任务描述 / 限制 / 备注"></textarea>
+    <label class="field-label">解锁称号（可选）<input id="taskTitleReward" placeholder="称号名称"></label>
+    <label class="field-label">任务描述<textarea id="taskDesc" placeholder="任务描述 / 限制 / 备注"></textarea></label>
     <div class="sheet-actions">
       <button class="btn btn-light" style="background:#efeff2" onclick="closeTaskModal()">取消</button>
-      <button class="btn btn-blue" onclick="createTask()">创建任务</button>
+      <button class="btn btn-blue" id="taskSubmitButton" onclick="createTask()">创建任务</button>
     </div>
   </div>
 </div>
@@ -1342,10 +1380,10 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
   <div class="sheet">
     <div class="sheet-top">
       <h3>导入任务码</h3>
-      <button class="close-btn" onclick="closeImportModal()">×</button>
+      <button class="close-btn" onclick="closeImportModal()" aria-label="关闭任务导入">×</button>
     </div>
     <p class="sheet-note">粘贴以 <b>ZYQ1:</b> 开头的任务码，或直接粘贴任务 JSON。</p>
-    <textarea id="taskCodeInput" placeholder="ZYQ1:..."></textarea>
+    <textarea id="taskCodeInput" aria-label="任务码" placeholder="ZYQ1:..."></textarea>
     <div class="sheet-actions">
       <button class="btn btn-light" style="background:#efeff2" onclick="closeImportModal()">取消</button>
       <button class="btn btn-blue" onclick="importTaskCode()">导入任务</button>
@@ -1358,7 +1396,7 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
   <div class="sheet">
     <div class="sheet-top">
       <h3>设置</h3>
-      <button class="close-btn" onclick="closeSettingsModal()">×</button>
+      <button class="close-btn" onclick="closeSettingsModal()" aria-label="关闭设置">×</button>
     </div>
 
     <div style="margin-top:18px;padding:18px;border-radius:22px;background:#f5f5f7">
@@ -1367,10 +1405,10 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
         本地浏览器会保留离线缓存。登录云存档后，电脑和手机会同步同一份进度。
       </div>
       <div class="data-actions" style="margin-top:16px">
-        <button class="btn btn-dark" onclick="exportSave()">导出存档</button>
-        <button class="btn btn-light" style="background:#fff" onclick="document.getElementById('saveFile').click()">导入存档</button>
-        <button class="btn btn-danger" onclick="resetAll()">重置系统</button>
-        <input id="saveFile" type="file" accept=".json" style="display:none" onchange="importSave(event)">
+        <button class="btn btn-dark" onclick="openDataManager()">数据管理</button>
+        <button class="btn btn-light" style="background:#fff" onclick="openGlobalSearch()">全站搜索</button>
+        <button class="btn btn-light" style="background:#fff" onclick="openYearArchive()">年度档案</button>
+        <button class="btn btn-danger" data-owner-only onclick="resetAll()">重置系统</button>
       </div>
     </div>
 
@@ -1382,8 +1420,8 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
 
       <div id="cloudLoginPanel" style="margin-top:12px">
         <div style="font-size:14px;line-height:1.5;color:#1d1d1f">电脑和手机登录同一个账号即可自动同步进度。</div>
-        <input id="cloudEmail" type="email" autocomplete="username" placeholder="邮箱">
-        <input id="cloudPassword" type="password" autocomplete="current-password" placeholder="密码">
+        <input id="cloudEmail" type="email" autocomplete="username" aria-label="云存档邮箱" placeholder="邮箱">
+        <input id="cloudPassword" type="password" autocomplete="current-password" aria-label="云存档密码" placeholder="密码">
         <div class="data-actions" style="margin-top:12px">
           <button class="btn btn-blue" onclick="cloudLogin()">登录云存档</button>
         </div>
@@ -1401,7 +1439,7 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
 
     <div style="margin-top:14px;padding:18px;border-radius:22px;background:#f5f5f7">
       <div style="font-size:13px;color:#6e6e73;font-weight:650">版本</div>
-      <div style="margin-top:6px;font-size:18px;font-weight:700">v3.15</div>
+      <div style="margin-top:6px;font-size:18px;font-weight:700">v3.16</div>
       <div style="margin-top:4px;font-size:13px;color:#6e6e73">Apple-style dynamic edition · Japan photo edition</div>
     </div>
   </div>
@@ -1466,11 +1504,38 @@ button.title-card:focus-visible{outline:3px solid rgba(0,113,227,.22);outline-of
   </div>
 </div>
 
+<div class="modal" id="utilityModal" aria-hidden="true">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="utilityTitle">
+    <div class="sheet-top">
+      <h3 id="utilityTitle">数据管理</h3>
+      <button class="close-btn" onclick="closeUtilityModal()" aria-label="关闭">×</button>
+    </div>
+    <p class="sheet-note" id="utilityIntro"></p>
+    <div id="utilityBody"></div>
+  </div>
+</div>
+
+<input id="saveFile" type="file" accept="application/json,.json" hidden onchange="importSave(event)">
+
+<div class="data-error-panel" id="dataErrorPanel" role="status" aria-live="polite">
+  <span>数据读取出现问题</span>
+  <span class="notice-actions"><button class="notice-btn secondary" onclick="retryDataLoad()">重新尝试</button><button class="notice-btn" id="errorRestoreButton" onclick="restoreLastKnownGood()">恢复上一版本</button></span>
+</div>
+<div class="update-notice" id="updateNotice" role="status" aria-live="polite">
+  <span>有新版本可用</span><button class="notice-btn" onclick="applyAppUpdate()">刷新更新</button>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const STORAGE_KEY="zuoyuLifeV2";
+const BACKUP_STORAGE_KEY="zuoyuLifeBackups";
+const CORRUPT_STORAGE_KEY="zuoyuLifeCorruptState";
+const TASK_FILTER_KEY="zuoyuTaskStatusFilter";
+const LAST_SYNC_KEY="zuoyuLastSyncedAt";
+const SCHEMA_VERSION=1;
+const BACKUP_VERSION=1;
 const IS_PREVIEW=new URLSearchParams(location.search).get("preview")==="1";
 
 const SUPABASE_URL="https://kqmaxyrvpxvqewoecwyh.supabase.co";
@@ -1488,6 +1553,7 @@ let supabaseClient=null;
 let cloudUser=null;
 let cloudSaveTimer=null;
 let cloudPublicRetryTimer=null;
+let cloudRetryTimer=null;
 let completionCloseTimer=null;
 let cloudSyncing=false;
 let cloudSaveQueued=false;
@@ -1517,6 +1583,12 @@ let regionLightboxStartX=null;
 let regionOwnerVerified=false;
 let regionOwnerError="";
 let heicConverterPromise=null;
+let startupDataError=null;
+let editingTaskId=null;
+let taskStatusFilter="all";
+try{taskStatusFilter=localStorage.getItem(TASK_FILTER_KEY)||"all"}catch(error){console.warn("Task filter preference unavailable",error)}
+let lastSyncedRevision=0;
+let waitingServiceWorker=null;
 const RANKS=["E","D","C","B","A","S","SS","SSS"];
 const RANK_THRESHOLDS={E:0,D:300,C:900,B:2200,A:5000,S:9000,SS:15000,SSS:25000};
 
@@ -1556,6 +1628,8 @@ const MILESTONE_DEFINITIONS=[
 ];
 
 const DEFAULT_STATE={
+  schemaVersion:SCHEMA_VERSION,
+  lastModifiedAt:null,
   exp:0,
   titles:["新手旅人"],
   titleRecords:[{title:"新手旅人",unlockedAt:null,source:"初始称号",equipped:true}],
@@ -1652,7 +1726,11 @@ function reconcileMilestones(s){
   const existing=Array.isArray(s.milestones)?s.milestones.filter(record=>record&&record.id):[];
   const byId=new Map(existing.map(record=>[record.id,record]));
   const knownIds=new Set(MILESTONE_DEFINITIONS.map(definition=>definition.id));
-  const records=existing.filter(record=>!knownIds.has(record.id));
+  const unknownIds=new Set();
+  const records=existing.filter(record=>{
+    if(knownIds.has(record.id)||unknownIds.has(record.id))return false;
+    unknownIds.add(record.id);return true;
+  });
   MILESTONE_DEFINITIONS.forEach(definition=>{
     const evaluation=definition.evaluate(s);
     const previous=byId.get(definition.id);
@@ -1680,11 +1758,87 @@ function milestoneViews(s=state){
   });
 }
 
-function loadState(){
+function safeStorageGet(key){
+  try{return localStorage.getItem(key)}catch(error){console.error("Storage read failed",{key,error});return null}
+}
+
+function safeStorageSet(key,value){
+  try{localStorage.setItem(key,value);return true}catch(error){console.error("Storage write failed",{key,error});startupDataError=error;showDataError?.();return false}
+}
+
+function stateSummary(snapshot){
+  return{
+    tasks:Array.isArray(snapshot?.tasks)?snapshot.tasks.length:0,
+    completed:Array.isArray(snapshot?.completed)?snapshot.completed.length:0,
+    regions:Array.isArray(snapshot?.regionRecords)?snapshot.regionRecords.length:Array.isArray(snapshot?.regions)?snapshot.regions.length:0,
+    milestones:Array.isArray(snapshot?.milestones)?snapshot.milestones.length:0
+  };
+}
+
+function getSafetyBackups(){
   try{
-    const raw=localStorage.getItem(STORAGE_KEY);
-    if(raw) return migrateState(JSON.parse(raw));
-  }catch(e){}
+    const value=JSON.parse(safeStorageGet(BACKUP_STORAGE_KEY)||"[]");
+    return Array.isArray(value)?value.filter(item=>item&&item.state&&item.savedAt).slice(0,3):[];
+  }catch(error){console.warn("Safety backup list could not be read",error);return[]}
+}
+
+function createSafetyBackup(reason,snapshot){
+  if(IS_PREVIEW||!snapshot||typeof snapshot!=="object")return false;
+  const entry={backupVersion:BACKUP_VERSION,schemaVersion:safeNum(snapshot.schemaVersion,0),savedAt:new Date().toISOString(),reason:String(reason||"自动备份"),summary:stateSummary(snapshot),state:clone(snapshot)};
+  const previous=getSafetyBackups();
+  if(previous[0]&&JSON.stringify(previous[0].state)===JSON.stringify(entry.state))return true;
+  return safeStorageSet(BACKUP_STORAGE_KEY,JSON.stringify([entry,...previous].slice(0,3)));
+}
+
+function runSchemaMigrations(input){
+  const snapshot=input&&typeof input==="object"&&!Array.isArray(input)?{...input}:{};
+  let version=Math.max(0,Math.floor(safeNum(snapshot.schemaVersion,0)));
+  if(version>SCHEMA_VERSION){
+    console.warn("Save uses a newer schema; unknown fields will be preserved",{version,supported:SCHEMA_VERSION});
+    return snapshot;
+  }
+  while(version<SCHEMA_VERSION){
+    if(version===0){
+      if(!snapshot.activeTasks&&Array.isArray(snapshot.active_tasks))snapshot.activeTasks=snapshot.active_tasks;
+      if(!snapshot.regionRecords&&Array.isArray(snapshot.region_records))snapshot.regionRecords=snapshot.region_records;
+      if(!snapshot.completed&&Array.isArray(snapshot.completedTasks))snapshot.completed=snapshot.completedTasks;
+      if(!snapshot.currentTitle&&snapshot.current_title)snapshot.currentTitle=snapshot.current_title;
+      delete snapshot.active_tasks;
+      delete snapshot.region_records;
+      delete snapshot.completedTasks;
+      delete snapshot.current_title;
+      version=1;
+      continue;
+    }
+    console.warn("Unknown schema migration step",version);
+    break;
+  }
+  snapshot.schemaVersion=SCHEMA_VERSION;
+  return snapshot;
+}
+
+function warnInvalidDates(snapshot){
+  const values=[...(Array.isArray(snapshot.completed)?snapshot.completed:[]),...(Array.isArray(snapshot.regionRecords)?snapshot.regionRecords:[]),...(Array.isArray(snapshot.milestones)?snapshot.milestones:[])];
+  values.forEach(record=>{
+    const value=record?.completedAt||record?.unlockedAt||record?.achievedAt||record?.date;
+    if(value&&Number.isNaN(Date.parse(value))&&!/^\d{4}[-/.]\d{1,2}(?:[-/.]\d{1,2})?$/.test(String(value)))console.warn("Preserving unrecognized historical date",value,record);
+  });
+}
+
+function loadState(){
+  const raw=safeStorageGet(STORAGE_KEY);
+  if(raw){
+    try{
+      const parsed=JSON.parse(raw);
+      if(safeNum(parsed?.schemaVersion,0)<SCHEMA_VERSION)createSafetyBackup("数据结构升级前",parsed);
+      return migrateState(parsed);
+    }
+    catch(error){
+      console.error("Local save could not be parsed",error);
+      startupDataError=error;
+      safeStorageSet(CORRUPT_STORAGE_KEY,raw);
+    }
+  }
   return migrateState(clone(DEFAULT_STATE));
 }
 
@@ -1784,7 +1938,16 @@ function reconcileImportedTaskIds(s){
       task.id=stableImportedTaskId(task);
       if(oldId)idMap.set(oldId,task.id);
     }
-    if(!task.id||seen.has(task.id))continue;
+    if(!task.id)task.id="recovered_"+taskFingerprintHash(JSON.stringify(task),2166136261);
+    if(seen.has(task.id)){
+      const existing=tasks.find(item=>item.id===task.id);
+      const left=JSON.stringify({...existing,id:undefined});
+      const right=JSON.stringify({...task,id:undefined});
+      if(left===right){console.warn("Duplicate task repaired",task.id);continue}
+      const originalId=task.id;
+      task.id=`${originalId}_recovered_${taskFingerprintHash(right,2654435761)}`;
+      console.warn("Conflicting task id preserved with a repaired id",{originalId,repairedId:task.id});
+    }
     seen.add(task.id);
     tasks.push(task);
   }
@@ -1844,9 +2007,18 @@ function reconcileUnlockRecords(s){
 }
 
 function migrateState(s,{persist=true}={}){
-  s=s&&typeof s==="object"?s:{};
+  if(!s||typeof s!=="object"||Array.isArray(s))console.warn("Invalid state root repaired",s);
+  s=runSchemaMigrations(s);
   s=withoutLegacyMoneyFields(s);
   delete s.shop;
+  const repairArchive=s.repairArchive&&typeof s.repairArchive==="object"&&!Array.isArray(s.repairArchive)?{...s.repairArchive}:{};
+  [["tasks",Array.isArray(s.tasks)],["completed",Array.isArray(s.completed)],["activeTasks",Array.isArray(s.activeTasks)],["regions",Array.isArray(s.regions)],["titles",Array.isArray(s.titles)],["attrs",s.attrs&&typeof s.attrs==="object"&&!Array.isArray(s.attrs)]].forEach(([key,valid])=>{
+    if(!valid&&s[key]!=null){repairArchive[key]=clone(s[key]);console.warn("Invalid field preserved before repair",key,s[key])}
+  });
+  if(Object.keys(repairArchive).length)s.repairArchive=repairArchive;
+  s.schemaVersion=Math.max(SCHEMA_VERSION,safeNum(s.schemaVersion,0));
+  s.lastModifiedAt=typeof s.lastModifiedAt==="string"?s.lastModifiedAt:null;
+  delete s.lastSyncedAt;
   s.exp=safeNum(s.exp,0);
   s.titles=Array.isArray(s.titles)?s.titles:["新手旅人"];
   if(!s.titles.length)s.titles=["新手旅人"];
@@ -1858,7 +2030,7 @@ function migrateState(s,{persist=true}={}){
   s.attrs=s.attrs&&typeof s.attrs==="object"?s.attrs:clone(DEFAULT_STATE.attrs);
   s.tasks=(Array.isArray(s.tasks)?s.tasks:clone(BASE_TASKS)).map(withoutLegacyMoneyFields);
   s.completed=(Array.isArray(s.completed)?s.completed:[]).map(withoutLegacyMoneyFields);
-  s.migrations=s.migrations||{};
+  s.migrations=s.migrations&&typeof s.migrations==="object"&&!Array.isArray(s.migrations)?s.migrations:{};
 
   /* Japan history: preserve and add exactly once for users coming from older versions */
   if(!s.migrations.japanExpedition202608){
@@ -1906,8 +2078,9 @@ function migrateState(s,{persist=true}={}){
   reconcileHistoricalTravelMetadata(s);
   reconcileUnlockRecords(s);
   reconcileMilestones(s);
+  warnInvalidDates(s);
 
-  if(persist)localStorage.setItem(STORAGE_KEY,JSON.stringify(s));
+  if(persist)safeStorageSet(STORAGE_KEY,JSON.stringify(s));
   return s;
 }
 
@@ -1948,7 +2121,9 @@ function unlockRegion(name,source,unlockedAt){
 
 function save(){
   if(IS_PREVIEW)return;
-  localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+  state.schemaVersion=Math.max(SCHEMA_VERSION,safeNum(state.schemaVersion,0));
+  state.lastModifiedAt=new Date().toISOString();
+  safeStorageSet(STORAGE_KEY,JSON.stringify(state));
   localStateRevision++;
   render();
   if(!suppressCloudSave)scheduleCloudSave();
@@ -2016,8 +2191,11 @@ function updateCloudUI(){
 
 function setLastSync(date=new Date()){
   const el=document.getElementById("cloudLastSync");
-  if(!el)return;
-  el.textContent="最近同步 "+date.toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+  if(el)el.textContent="最近同步 "+date.toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+  if(!IS_PREVIEW&&state){
+    safeStorageSet(LAST_SYNC_KEY,date.toISOString());
+    lastSyncedRevision=localStateRevision;
+  }
 }
 
 function scheduleCloudSave(){
@@ -2032,12 +2210,20 @@ function cloudTime(value){
   return Number.isFinite(time)?time:0;
 }
 
+function withTimeout(promise,timeout=10000,label="请求超时"){
+  let timer;
+  return Promise.race([
+    Promise.resolve(promise),
+    new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(label)),timeout)})
+  ]).finally(()=>clearTimeout(timer));
+}
+
 async function fetchCloudRow(table,column,value){
-  const {data,error}=await supabaseClient
+  const {data,error}=await withTimeout(supabaseClient
     .from(table)
     .select("state,updated_at")
     .eq(column,value)
-    .maybeSingle();
+    .maybeSingle(),10000,"云端读取超时");
   if(error)throw error;
   return data||null;
 }
@@ -2061,10 +2247,12 @@ function applyRemoteState(row,{preview=false,force=false}={}){
 
   suppressCloudSave=true;
   try{
+    if(!preview&&localStateRevision>lastSyncedRevision&&JSON.stringify(state)!==JSON.stringify(row.state))createSafetyBackup("云同步冲突前的本地版本",state);
     state=migrateState(clone(row.state),{persist:!preview});
     regionDataLoaded=false;
-    if(!preview)localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+    if(!preview)safeStorageSet(STORAGE_KEY,JSON.stringify(state));
     localStateRevision++;
+    if(!preview)lastSyncedRevision=localStateRevision;
     render();
     if(preview)applyPreviewMode();
   }finally{
@@ -2089,19 +2277,19 @@ async function publishPublicState(snapshot,updatedAt){
     updated_at:updatedAt
   };
   if(current){
-    result=await supabaseClient
+    result=await withTimeout(supabaseClient
       .from("public_state")
       .update(payload)
       .eq("slug",PUBLIC_STATE_SLUG)
       .eq("updated_at",current.updated_at)
       .select("state,updated_at")
-      .maybeSingle();
+      .maybeSingle(),10000,"公开状态同步超时");
   }else{
-    result=await supabaseClient
+    result=await withTimeout(supabaseClient
       .from("public_state")
       .upsert(payload,{onConflict:"slug"})
       .select("state,updated_at")
-      .maybeSingle();
+      .maybeSingle(),10000,"公开状态同步超时");
   }
   if(result.error)throw result.error;
   if(result.data?.updated_at)knownPublicUpdatedAt=result.data.updated_at;
@@ -2141,6 +2329,11 @@ async function pushCloudState(){
   try{
     const current=await fetchCloudRow("life_saves","user_id",cloudUser.id);
     if(current&&(!knownSaveUpdatedAt||cloudTime(current.updated_at)>cloudTime(knownSaveUpdatedAt))){
+      const localChanged=localStateRevision>lastSyncedRevision;
+      if(localChanged){
+        createSafetyBackup("同步冲突中的本地版本",snapshot);
+        console.warn("Cloud conflict preserved; authoritative newer cloud state was applied",{localModified:snapshot.lastModifiedAt,remoteUpdatedAt:current.updated_at});
+      }
       remoteWon=applyRemoteState(current,{force:true});
       setCloudStatus("已获取较新云存档","ok");
       return false;
@@ -2156,19 +2349,19 @@ async function pushCloudState(){
     let saveResult;
     if(current){
       // Compare-and-set: another device winning this race makes this update affect zero rows.
-      saveResult=await supabaseClient
+      saveResult=await withTimeout(supabaseClient
         .from("life_saves")
         .update(payload)
         .eq("user_id",cloudUser.id)
         .eq("updated_at",current.updated_at)
         .select("state,updated_at")
-        .maybeSingle();
+        .maybeSingle(),10000,"云存档写入超时");
     }else{
-      saveResult=await supabaseClient
+      saveResult=await withTimeout(supabaseClient
         .from("life_saves")
         .upsert(payload,{onConflict:"user_id"})
         .select("state,updated_at")
-        .maybeSingle();
+        .maybeSingle(),10000,"云存档写入超时");
     }
 
     if(saveResult.error)throw saveResult.error;
@@ -2193,10 +2386,13 @@ async function pushCloudState(){
 
     setCloudStatus("已同步","ok");
     setLastSync(new Date(knownSaveUpdatedAt));
+    clearTimeout(cloudRetryTimer);
     return true;
   }catch(err){
     console.error("Cloud sync failed",err);
     setCloudStatus("同步失败","error");
+    clearTimeout(cloudRetryTimer);
+    cloudRetryTimer=setTimeout(()=>{if(!IS_PREVIEW&&cloudUser)scheduleCloudSave()},2500);
     return false;
   }finally{
     pendingSaveUpdatedAt=null;
@@ -2230,9 +2426,11 @@ async function bootstrapCloudForUser(){
       const importedIdMigrationNeeded=needsImportedTaskIdMigration(data.state);
       const legacyMoneyCleanupNeeded=needsLegacyMoneyCleanup(data.state);
       const historicalTravelMetadataNeeded=needsHistoricalTravelMetadata(data.state);
+      const schemaMigrationNeeded=safeNum(data.state.schemaVersion,0)<SCHEMA_VERSION;
+      if(JSON.stringify(state)!==JSON.stringify(data.state))createSafetyBackup("恢复云存档前",state);
       applyRemoteState(data,{force:true});
       setCloudStatus("已同步","ok");
-      if(importedIdMigrationNeeded||legacyMoneyCleanupNeeded||historicalTravelMetadataNeeded){
+      if(importedIdMigrationNeeded||legacyMoneyCleanupNeeded||historicalTravelMetadataNeeded||schemaMigrationNeeded){
         await pushCloudState();
       }else{
         try{
@@ -2347,12 +2545,20 @@ function setupCloudLifecycle(){
       if(IS_PREVIEW&& !publicStateChannel)subscribePublicState();
       if(!IS_PREVIEW&&cloudUser&&!ownerStateChannel)subscribeOwnerState();
       refreshCloudState();
+    }else if(!IS_PREVIEW&&cloudUser&&(cloudSaveTimer||cloudSaveQueued)){
+      clearTimeout(cloudSaveTimer);
+      pushCloudState();
     }
   });
   window.addEventListener("online",()=>{
-    if(IS_PREVIEW)subscribePublicState();
-    else if(cloudUser)subscribeOwnerState();
-    refreshCloudState();
+    if(IS_PREVIEW){subscribePublicState();refreshCloudState()}
+    else if(cloudUser){
+      subscribeOwnerState();
+      if(localStateRevision>lastSyncedRevision)scheduleCloudSave();else refreshCloudState();
+    }
+  });
+  window.addEventListener("pagehide",()=>{
+    if(!IS_PREVIEW&&cloudUser&&(cloudSaveTimer||cloudSaveQueued))pushCloudState();
   });
 }
 
@@ -2483,6 +2689,7 @@ async function initCloud(){
 
 
 /* ---------- Animation ---------- */
+let revealObserver=null;
 function animateNumber(el,target,duration=650){
   target=safeNum(target,0);
   const start=safeNum(el.dataset.value,0);
@@ -2498,24 +2705,29 @@ function animateNumber(el,target,duration=650){
   requestAnimationFrame(tick);
 }
 function setupReveal(){
-  const obs=new IntersectionObserver(entries=>{
+  if(!revealObserver)revealObserver=new IntersectionObserver(entries=>{
     entries.forEach(e=>{
       if(e.isIntersecting){
         e.target.classList.add("is-visible");
-        obs.unobserve(e.target);
+        revealObserver.unobserve(e.target);
       }
     })
   },{threshold:.14});
+  revealObserver.disconnect();
   document.querySelectorAll(".reveal").forEach(el=>{
-    if(!el.closest(".final-section"))obs.observe(el);
+    if(!el.closest(".final-section")&&!el.classList.contains("is-visible"))revealObserver.observe(el);
   });
 }
 function setupParallax(){
   const hero=document.querySelector(".hero");
+  let frame=0;
   window.addEventListener("scroll",()=>{
-    if(!hero||matchMedia("(prefers-reduced-motion: reduce)").matches)return;
-    const y=Math.min(window.scrollY,window.innerHeight);
-    hero.style.setProperty("--heroShift",(y*.08)+"px");
+    if(frame||!hero||matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+    frame=requestAnimationFrame(()=>{
+      frame=0;
+      const y=Math.min(window.scrollY,window.innerHeight);
+      hero.style.setProperty("--heroShift",(y*.08)+"px");
+    });
   },{passive:true});
 }
 const PAGE_ROUTES=["home","tasksSection","recordsSection","finalSection"];
@@ -2811,14 +3023,19 @@ function renderAttrs(){
 function renderTasks(){
   const tabs=document.getElementById("rankTabs");
   tabs.innerHTML=RANKS.map(r=>`<button class="rank-tab ${state.selectedRank===r?"active":""}" onclick="selectRank('${r}')">${r}</button>`).join("");
+  if(!["all","active","completed"].includes(taskStatusFilter))taskStatusFilter="all";
+  const statusSelect=document.getElementById("taskStatusFilter");
+  if(statusSelect)statusSelect.value=taskStatusFilter;
 
   const list=document.getElementById("taskList");
-  const tasks=state.tasks.filter(t=>t.rank===state.selectedRank);
-  if(!tasks.length){
+  const tasks=state.tasks.filter(t=>t.rank===state.selectedRank&&(taskStatusFilter!=="active"||state.activeTasks.includes(t.id)));
+  const completed=taskStatusFilter==="active"?[]:state.completed.filter(record=>String(record.rank||"").toUpperCase()===state.selectedRank);
+  const visibleTasks=taskStatusFilter==="completed"?[]:tasks;
+  if(!visibleTasks.length&&!completed.length){
     list.innerHTML=`<div class="empty reveal">这个等级暂时没有任务。</div>`;
     return;
   }
-  list.innerHTML=tasks.map((t,i)=>`
+  const availableHtml=visibleTasks.map((t,i)=>`
     <article class="task-card reveal ${i%2?"reveal-delay-1":""}">
       <div class="task-top">
         <span class="rank-chip">${escapeHtml(t.rank)}</span>
@@ -2841,9 +3058,23 @@ function renderTasks(){
 }
         <button class="action-btn secondary" onclick="copyTaskCode('${escapeHtml(t.id)}')">复制任务码</button>
         ${t.custom?`<button class="action-btn delete" onclick="deleteTask('${escapeHtml(t.id)}')">删除</button>`:""}
+        ${t.custom?`<button class="action-btn secondary" onclick="openEditTaskModal('${escapeHtml(t.id)}')">编辑</button>`:""}
       </div>
     </article>
   `).join("");
+  const completedHtml=completed.map((record,index)=>`<article class="task-card reveal ${index%2?"reveal-delay-1":""}">
+    <div class="task-top"><span class="rank-chip">${escapeHtml(record.rank||"")}</span><span class="task-exp">已完成</span></div>
+    <h3>${escapeHtml(record.title||"未命名任务")}</h3>
+    <p>${escapeHtml(record.desc||record.rewards||"")}</p>
+    <div class="reward-line"><span class="reward-badge">${escapeHtml(record.date||formatMilestoneDate(record.completedAt,{full:true}))}</span></div>
+  </article>`).join("");
+  list.innerHTML=availableHtml+completedHtml;
+}
+
+function setTaskStatusFilter(value){
+  taskStatusFilter=["all","active","completed"].includes(value)?value:"all";
+  safeStorageSet(TASK_FILTER_KEY,taskStatusFilter);
+  renderTasks();
 }
 
 function renderTimeline(){
@@ -3654,8 +3885,9 @@ function createTask(){
   if(IS_PREVIEW)return;
   const title=document.getElementById("taskName").value.trim();
   if(!title)return toast("先写任务名称");
+  const existing=editingTaskId?state.tasks.find(item=>item.id===editingTaskId):null;
   const task={
-    id:"custom_"+Date.now(),
+    id:existing?.id||("custom_"+(crypto.randomUUID?.()||`${Date.now()}_${Math.floor(Math.random()*1e6)}`)),
     custom:true,
     title,
     rank:document.getElementById("taskRank").value,
@@ -3665,13 +3897,17 @@ function createTask(){
     titleReward:document.getElementById("taskTitleReward").value.trim(),
     desc:document.getElementById("taskDesc").value.trim()
   };
-  state.tasks.push(task);
+  if(existing){
+    const index=state.tasks.findIndex(item=>item.id===existing.id);
+    state.tasks[index]={...existing,...task};
+  }else state.tasks.push(task);
   state.selectedRank=task.rank;
+  const wasEditing=Boolean(existing);
   closeTaskModal();
   ["taskName","taskTitleReward","taskDesc"].forEach(id=>document.getElementById(id).value="");
   save();
   setTimeout(()=>goTo("tasksSection"),150);
-  toast("任务已加入");
+  toast(wasEditing?"任务已更新":"任务已加入");
 }
 function deleteTask(id){
   if(IS_PREVIEW)return;
@@ -3787,31 +4023,202 @@ function completeFinalTask(){
 
 /* ---------- Save ---------- */
 function exportSave(){
-  const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+  const clean=migrateState(clone(state),{persist:false});
+  const backup={backupVersion:BACKUP_VERSION,schemaVersion:clean.schemaVersion,exportedAt:new Date().toISOString(),state:clean};
+  const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
-  a.download="zuoyu-life-v3-save.json";
+  a.download=`zuoyu-life-backup-${new Date().toISOString().slice(0,10)}.json`;
   a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
+
+function validateBackupPayload(payload){
+  if(!payload||typeof payload!=="object"||Array.isArray(payload))throw new Error("备份内容不是有效对象");
+  const source=payload.state&&typeof payload.state==="object"?payload.state:payload;
+  if(!source||typeof source!=="object"||Array.isArray(source))throw new Error("备份中没有有效存档");
+  const recognized=["tasks","completed","regions","regionRecords","finalTask","milestones","titles","attrs"].some(key=>Object.hasOwn(source,key));
+  if(!recognized)throw new Error("未识别到人生系统数据");
+  const migrated=migrateState(clone(source),{persist:false});
+  return{
+    backupVersion:safeNum(payload.backupVersion,0),
+    schemaVersion:safeNum(payload.schemaVersion??source.schemaVersion,0),
+    exportedAt:payload.exportedAt||null,
+    state:migrated,
+    summary:stateSummary(migrated)
+  };
+}
+
 function importSave(e){
   if(IS_PREVIEW)return;
   const f=e.target.files[0];if(!f)return;
+  e.target.value="";
   const r=new FileReader();
   r.onload=()=>{
     try{
-      state=migrateState(JSON.parse(r.result));
-      save();toast("存档导入成功")
-    }catch(err){toast("存档文件无效")}
+      const candidate=validateBackupPayload(JSON.parse(r.result));
+      const when=candidate.exportedAt?formatMilestoneDate(candidate.exportedAt,{full:true}):"旧版备份";
+      const summary=candidate.summary;
+      if(!confirm(`确认恢复这份备份？\n\n备份时间：${when}\n任务：${summary.tasks}\n已完成：${summary.completed}\n区域：${summary.regions}\n里程碑：${summary.milestones}`))return;
+      createSafetyBackup("导入备份前",state);
+      state=candidate.state;
+      save();closeUtilityModal();toast("备份恢复成功")
+    }catch(err){console.error("Backup import failed",err);toast(err.message||"存档文件无效")}
   };
+  r.onerror=()=>{console.error("Backup file read failed",r.error);toast("备份文件读取失败")};
   r.readAsText(f);
+}
+
+function restoreLastKnownGood(){
+  if(IS_PREVIEW)return;
+  const backup=getSafetyBackups()[0];
+  if(!backup)return toast("没有可恢复的安全备份");
+  if(!confirm(`恢复上一版本？\n\n保存时间：${formatMilestoneDate(backup.savedAt,{full:true})}\n任务：${backup.summary?.tasks??stateSummary(backup.state).tasks}\n区域：${backup.summary?.regions??stateSummary(backup.state).regions}`))return;
+  try{
+    const restored=validateBackupPayload({state:backup.state});
+    createSafetyBackup("恢复上一版本前",state);
+    state=restored.state;
+    startupDataError=null;
+    save();showDataError();closeUtilityModal();toast("已恢复上一版本");
+  }catch(error){console.error("Safety restore failed",error);toast("安全备份无法恢复")}
+}
+
+function retryDataLoad(){
+  const raw=safeStorageGet(STORAGE_KEY);
+  try{
+    if(!raw)throw new Error("本地存档不存在");
+    state=migrateState(JSON.parse(raw));
+    startupDataError=null;render();showDataError();toast("数据已重新读取");
+  }catch(error){console.error("Retry data load failed",error);toast("仍然无法读取数据")}
+}
+
+function showDataError(){
+  const panel=document.getElementById("dataErrorPanel");
+  if(!panel)return;
+  panel.classList.toggle("show",Boolean(startupDataError));
+  document.getElementById("errorRestoreButton").style.display=getSafetyBackups().length?"":"none";
 }
 function resetAll(){
   if(IS_PREVIEW)return;
   if(!confirm("确定重置系统？\n\n自定义任务与当前进度会清空，但已发生的日本真实历史战绩会在迁移后重新计入。"))return;
-  localStorage.removeItem(STORAGE_KEY);
+  createSafetyBackup("重置系统前",state);
+  try{localStorage.removeItem(STORAGE_KEY)}catch(error){console.error("Storage reset failed",error)}
   state=migrateState(clone(DEFAULT_STATE));
   save();toast("系统已重置");
+}
+
+function openUtilityModal(title,intro,content){
+  closeModal("settingsModal");
+  document.getElementById("utilityTitle").textContent=title;
+  document.getElementById("utilityIntro").textContent=intro||"";
+  document.getElementById("utilityBody").innerHTML=content||"";
+  openModal("utilityModal");
+  applyPreviewMode();
+}
+
+function closeUtilityModal(){closeModal("utilityModal")}
+
+function openDataManager(){
+  const backups=getSafetyBackups();
+  const summary=stateSummary(state);
+  const latest=backups[0];
+  openUtilityModal("数据管理","备份文件会先验证，确认有效后才会替换当前数据。",`
+    <div class="utility-summary">
+      <div>任务<strong>${summary.tasks}</strong></div><div>区域<strong>${summary.regions}</strong></div><div>里程碑<strong>${summary.milestones}</strong></div>
+    </div>
+    <div class="utility-actions">
+      <button class="utility-action" onclick="exportSave()">导出备份<span>包含完整状态、数据版本和导出时间</span></button>
+      <button class="utility-action" data-owner-only onclick="document.getElementById('saveFile').click()">导入备份<span>验证后显示摘要并再次确认</span></button>
+      ${latest?`<button class="utility-action" data-owner-only onclick="restoreLastKnownGood()">恢复上一版本<span>${escapeHtml(formatMilestoneDate(latest.savedAt,{full:true}))} · ${latest.summary?.tasks??0} 个任务 · ${latest.summary?.regions??0} 个区域</span></button>`:""}
+    </div>
+    <p class="utility-note">自动安全备份最多保留最近 3 份。普通访客与预览模式不会修改数据。</p>`);
+}
+
+function normalizeSearchText(value){return String(value||"").normalize("NFKC").toLowerCase().replace(/\s+/g,"")}
+function fuzzyIncludes(value,query){
+  const text=normalizeSearchText(value),needle=normalizeSearchText(query);
+  if(!needle)return true;
+  if(text.includes(needle))return true;
+  let index=0;for(const char of text)if(char===needle[index])index++;
+  return index===needle.length;
+}
+
+function searchCatalog(query){
+  const results=[];
+  state.tasks.forEach(task=>{if(fuzzyIncludes(`${task.title} ${task.desc} ${task.regionReward} ${encodeTaskCode(task)} ${taskReferenceFor(task)}`,query))results.push({type:"任务",title:task.title,meta:`${task.rank} · ${state.activeTasks.includes(task.id)?"正在进行":"待完成"}`,action:"task"})});
+  state.completed.forEach(record=>{if(fuzzyIncludes(`${record.title} ${record.taskCode} ${record.taskRef} ${record.desc} ${record.route} ${(record.places||[]).join?.(" ")||""}`,query))results.push({type:"战绩",title:record.title,meta:record.date||formatMilestoneDate(record.completedAt,{full:true}),action:"records"})});
+  state.regionRecords.forEach(record=>{if(fuzzyIncludes(`${record.name} ${record.regionId} ${record.source}`,query))results.push({type:"区域",title:record.name,meta:record.source||"历史解锁",action:"region",id:record.regionId||regionIdForName(record.name)})});
+  milestoneViews().forEach(item=>{if(fuzzyIncludes(`${item.name} ${item.description} ${item.category}`,query))results.push({type:"里程碑",title:item.name,meta:item.achieved?`已记录 · ${formatMilestoneDate(item.achievedAt)}`:"尚未记录",action:"milestone"})});
+  return results.slice(0,60);
+}
+
+function renderSearchResults(query=""){
+  const target=document.getElementById("searchResults");if(!target)return;
+  const results=searchCatalog(query);
+  if(!query.trim()){target.innerHTML='<div class="empty-archive">输入名称、代码、城市或里程碑</div>';return}
+  if(!results.length){target.innerHTML='<div class="empty-archive">没有找到相关记录</div>';return}
+  const groups=new Map();results.forEach(item=>{if(!groups.has(item.type))groups.set(item.type,[]);groups.get(item.type).push(item)});
+  target.innerHTML=[...groups].map(([type,items])=>`<section class="search-group"><h4>${escapeHtml(type)}</h4>${items.map(item=>`<button class="search-result" onclick="openSearchResult('${item.action}','${escapeHtml(item.id||"")}')"><b>${escapeHtml(item.title)}</b><span>${escapeHtml(item.meta)}</span></button>`).join("")}</section>`).join("");
+}
+
+function openGlobalSearch(){
+  openUtilityModal("全站搜索","搜索任务、任务代码、区域、城市和里程碑。",'<label class="field-label">搜索<input id="globalSearchInput" type="search" inputmode="search" autocomplete="off" placeholder="输入关键词" oninput="renderSearchResults(this.value)"></label><div class="search-results" id="searchResults"></div>');
+  renderSearchResults("");
+  requestAnimationFrame(()=>document.getElementById("globalSearchInput")?.focus());
+}
+
+function openSearchResult(action,id){
+  closeUtilityModal();
+  if(action==="region")return openRegionDetail(id);
+  if(action==="records")return openArchiveModal("records");
+  goTo(action==="task"?"tasksSection":"milestonesSection");
+}
+
+function archiveDateParts(value){
+  const text=String(value||"");
+  const match=text.match(/^(\d{4})[-/.](\d{1,2})/);
+  if(match)return{year:match[1],month:`${match[1]}.${String(match[2]).padStart(2,"0")}`};
+  const date=new Date(value||"");
+  if(Number.isNaN(date.getTime()))return null;
+  return{year:String(date.getFullYear()),month:`${date.getFullYear()}.${String(date.getMonth()+1).padStart(2,"0")}`};
+}
+
+function buildYearArchive(){
+  const years=new Map();
+  const ensureYear=year=>{if(!years.has(year))years.set(year,{completed:0,regions:new Set(),milestones:new Set(),firstExperiences:new Set(),places:new Set(),months:new Map()});return years.get(year)};
+  const addEvent=(parts,key,title,detail)=>{
+    const year=ensureYear(parts.year);if(!year.months.has(parts.month))year.months.set(parts.month,new Map());
+    const events=year.months.get(parts.month);if(!events.has(key))events.set(key,{title,details:new Set()});
+    if(detail)events.get(key).details.add(detail);
+  };
+  state.completed.forEach((record,index)=>{
+    const parts=archiveDateParts(record.completedAt||record.date);if(!parts)return;
+    const year=ensureYear(parts.year);year.completed++;
+    (Array.isArray(record.places)?record.places:[]).forEach(place=>year.places.add(place));
+    addEvent(parts,`task:${record.taskKey||record.taskId||record.title||index}`,record.title||"已完成任务",`${record.rank||""}级任务`);
+  });
+  state.regionRecords.forEach(record=>{
+    const parts=archiveDateParts(record.unlockedAt);if(!parts)return;
+    const year=ensureYear(parts.year);year.regions.add(record.name);year.places.add(record.name);
+    const sourceMatch=[...year.months.get(parts.month)?.values()||[]].find(event=>event.title===record.source);
+    if(sourceMatch)sourceMatch.details.add(`到达 ${record.name}`);else addEvent(parts,`region:${record.regionId||record.name}`,`到达 ${record.name}`,record.source||"区域记录");
+  });
+  milestoneViews().filter(item=>item.achieved).forEach(item=>{
+    const parts=archiveDateParts(item.achievedAt);if(!parts)return;
+    const year=ensureYear(parts.year);year.milestones.add(item.id);
+    if(item.name.startsWith("第一次"))year.firstExperiences.add(item.id);
+    addEvent(parts,`milestone:${item.id}`,item.name,"里程碑");
+  });
+  return[...years.entries()].sort((a,b)=>b[0].localeCompare(a[0]));
+}
+
+function openYearArchive(){
+  const years=buildYearArchive();
+  const html=years.length?years.map(([year,data])=>`<section class="search-group"><h3>${escapeHtml(year)}</h3>
+    <div class="year-summary"><div>完成任务<strong>${data.completed}</strong></div><div>去过地点<strong>${data.places.size}</strong></div><div>新增区域<strong>${data.regions.size}</strong></div><div>新增里程碑<strong>${data.milestones.size}</strong></div><div>第一次经历<strong>${data.firstExperiences.size}</strong></div></div>
+    <div class="year-archive">${[...data.months.entries()].sort((a,b)=>b[0].localeCompare(a[0])).map(([month,events])=>`<section class="year-month"><h4>${escapeHtml(month)}</h4>${[...events.values()].map(event=>`<div class="year-event"><b>${escapeHtml(event.title)}</b><span>${escapeHtml([...event.details].join(" · "))}</span></div>`).join("")}</section>`).join("")}</div>
+  </section>`).join(""):'<div class="empty-archive">暂无可生成的年度记录</div>';
+  openUtilityModal("年度档案","完全根据现有任务、区域与里程碑记录生成。",html);
 }
 
 /* ---------- UI ---------- */
@@ -3971,18 +4378,49 @@ function setArchiveRecordFilter(filter){
 }
 function openSettingsModal(){openModal("settingsModal")}
 function closeSettingsModal(){closeModal("settingsModal")}
-function openTaskModal(){openModal("taskModal")}
-function closeTaskModal(){closeModal("taskModal")}
+function openTaskModal(){
+  editingTaskId=null;
+  document.getElementById("taskModalTitle").textContent="创建任务";
+  document.getElementById("taskSubmitButton").textContent="创建任务";
+  document.getElementById("taskName").value="";
+  document.getElementById("taskRank").value=state.selectedRank||"E";
+  document.getElementById("taskExp").value=120;
+  document.getElementById("taskGain").value=1;
+  document.getElementById("taskTitleReward").value="";
+  document.getElementById("taskDesc").value="";
+  openModal("taskModal");
+}
+function openEditTaskModal(id){
+  if(IS_PREVIEW)return;
+  const task=state.tasks.find(item=>item.id===id&&item.custom);if(!task)return;
+  editingTaskId=id;
+  document.getElementById("taskModalTitle").textContent="编辑任务";
+  document.getElementById("taskSubmitButton").textContent="保存修改";
+  document.getElementById("taskName").value=task.title||"";
+  document.getElementById("taskRank").value=task.rank||"E";
+  document.getElementById("taskExp").value=safeNum(task.exp,120);
+  document.getElementById("taskAttr").value=task.attr||"探索";
+  document.getElementById("taskGain").value=safeNum(task.gain,1);
+  document.getElementById("taskTitleReward").value=task.titleReward||"";
+  document.getElementById("taskDesc").value=task.desc||"";
+  openModal("taskModal");
+}
+function closeTaskModal(){editingTaskId=null;closeModal("taskModal")}
 function openImportModal(){document.getElementById("taskCodeInput").value="";openModal("importModal")}
 function closeImportModal(){closeModal("importModal")}
 function openModal(id){
-  document.getElementById(id).classList.add("open");
+  const modal=document.getElementById(id);if(!modal)return;
+  modal.classList.add("open");
+  modal.setAttribute("aria-hidden","false");
   document.body.classList.add("modal-open");
+  requestAnimationFrame(()=>modal.querySelector("input,select,textarea,button")?.focus({preventScroll:true}));
 }
 function closeModal(id){
   if(id==="archiveModal"){closeArchiveModal();return}
   if(id==="regionLightbox"){closeRegionLightbox();return}
-  document.getElementById(id).classList.remove("open");
+  const modal=document.getElementById(id);if(!modal)return;
+  modal.classList.remove("open");
+  modal.setAttribute("aria-hidden","true");
   if(!document.querySelector(".modal.open")&&!document.getElementById("rewardOverlay").classList.contains("show"))document.body.classList.remove("modal-open");
 }
 document.querySelectorAll(".modal").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)closeModal(m.id)}));
@@ -4014,6 +4452,7 @@ document.addEventListener("keydown",event=>{
   if(document.getElementById("regionLightbox").classList.contains("open"))closeRegionLightbox();
   else if(document.getElementById("archiveModal").classList.contains("open"))closeArchiveModal();
   else if(document.getElementById("rewardOverlay").classList.contains("show"))closeReward();
+  else document.querySelector(".modal.open")&&closeModal(document.querySelector(".modal.open").id);
 });
 document.getElementById("lightboxImageWrap").addEventListener("pointerdown",event=>{regionLightboxStartX=event.clientX});
 document.getElementById("lightboxImageWrap").addEventListener("pointerup",event=>{
@@ -4041,9 +4480,9 @@ function applyPreviewMode(){
     "acceptTask(",
     "completeTask(",
     "deleteTask(",
+    "openEditTaskModal(",
     "completeFinalTask(",
     "openImportModal(",
-    "openSettingsModal(",
     "openTaskModal("
   ];
 
@@ -4053,6 +4492,33 @@ function applyPreviewMode(){
       btn.style.display="none";
     }
   });
+  document.querySelectorAll("[data-owner-only]").forEach(element=>element.style.display="none");
+}
+
+function showAppUpdate(worker){
+  waitingServiceWorker=worker;
+  document.getElementById("updateNotice")?.classList.add("show");
+}
+
+function applyAppUpdate(){
+  if(!waitingServiceWorker)return location.reload();
+  let reloading=false;
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{if(!reloading){reloading=true;location.reload()}});
+  waitingServiceWorker.postMessage({type:"SKIP_WAITING"});
+}
+
+async function registerServiceWorker(){
+  if(!("serviceWorker" in navigator)||!/^https?:$/.test(location.protocol))return;
+  if(["127.0.0.1","localhost"].includes(location.hostname)&&new URLSearchParams(location.search).get("pwa")!=="1")return;
+  try{
+    const registration=await navigator.serviceWorker.register("./sw.js",{scope:"./"});
+    if(registration.waiting&&navigator.serviceWorker.controller)showAppUpdate(registration.waiting);
+    registration.addEventListener("updatefound",()=>{
+      const worker=registration.installing;if(!worker)return;
+      worker.addEventListener("statechange",()=>{if(worker.state==="installed"&&navigator.serviceWorker.controller)showAppUpdate(worker)});
+    });
+    setInterval(()=>registration.update().catch(error=>console.warn("PWA update check failed",error)),60*60*1000);
+  }catch(error){console.warn("Service worker registration failed",error)}
 }
 
 if(IS_PREVIEW){
@@ -4063,10 +4529,12 @@ if(IS_PREVIEW){
 }
 render();
 applyPreviewMode();
+showDataError();
 setupReveal();
 setupParallax();
 setupNavSpy();
 initCloud();
+registerServiceWorker();
 </script>
 </body>
 <!-- Codex deploy test -->

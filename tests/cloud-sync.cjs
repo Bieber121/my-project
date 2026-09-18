@@ -252,6 +252,7 @@ async function run() {
     await stale.evaluate(() => selectRank('D'));
     await waitState(stale, 's => s.activeTasks.includes("e1")', 'stale owner accepts newer cloud row');
     assert(database.life_saves.state.activeTasks.includes('e1'), 'compare-and-set protects newer cloud state');
+    assert(await stale.evaluate(() => getSafetyBackups().some(item => item.reason.includes('同步冲突'))), 'conflicting local state is preserved as a safety backup');
 
     // B + C: mobile completes; computer and friend update all derived values automatically.
     const beforeCompletion = structuredClone(database.life_saves.state);
